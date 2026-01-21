@@ -31,6 +31,9 @@ from progain4.ui.dialogs.firebase_config_dialog import FirebaseConfigDialog
 from progain4.ui.dialogs.project_dialog import ProjectDialog
 from progain4.ui.main_window4 import MainWindow4
 
+# ✅ NUEVO: Import modern window for optional use
+from progain4.ui.main_window_modern import MainWindowModern
+
 # Import theme manager
 try:
     from progain4.ui.theme_manager_improved import theme_manager
@@ -73,8 +76,8 @@ class PROGRAIN4App:
         self.app.setOrganizationName("PROGRAIN")
         self.app.setOrganizationDomain("prograin. com")
 
-        self.firebase_client:  Optional[FirebaseClient] = None
-        self.main_window: Optional[MainWindow4] = None
+        self.firebase_client: Optional[FirebaseClient] = None
+        self.main_window = None  # Can be MainWindow4 or MainWindowModern
         self.config_manager = ConfigManager()
         
         # --- APLICACIÓN DEL TEMA ---
@@ -113,12 +116,24 @@ class PROGRAIN4App:
                 return 0
 
             # Step 3: Create and show main window
-            self.main_window = MainWindow4(
-                self.firebase_client,
-                proyecto_id,
-                proyecto_nombre,
-                self.config_manager,
-            )
+            # ✅ NUEVO: Opción para usar ventana moderna (configurable)
+            use_modern_ui = os.environ.get("USE_MODERN_UI", "false").lower() == "true"
+            
+            if use_modern_ui:
+                logger.info("🎨 Using modern UI (MainWindowModern)")
+                # MainWindowModern es más simple y no requiere Firebase/proyecto para testing
+                self.main_window = MainWindowModern()
+                # Aplicar proyecto si está disponible
+                if proyecto_nombre:
+                    self.main_window.set_project(proyecto_nombre)
+            else:
+                logger.info("Using classic UI (MainWindow4)")
+                self.main_window = MainWindow4(
+                    self.firebase_client,
+                    proyecto_id,
+                    proyecto_nombre,
+                    self.config_manager,
+                )
             
             # ✅ CORREGIDO: Guardar cuando CAMBIA de proyecto (no al cerrar)
             # Conectar señal de cambio de proyecto
