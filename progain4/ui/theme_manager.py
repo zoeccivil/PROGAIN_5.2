@@ -17,6 +17,54 @@ logger = logging.getLogger(__name__)
 _current_theme = "light"
 
 
+# ============================================================================
+# DESIGN COLORS - Construction Manager Pro Palette
+# ============================================================================
+DESIGN_COLORS = {
+    # Slate palette (grays)
+    'slate_50': '#f8fafc',
+    'slate_100': '#f1f5f9',
+    'slate_200': '#e2e8f0',
+    'slate_300': '#cbd5e1',
+    'slate_400': '#94a3b8',
+    'slate_500': '#64748b',
+    'slate_600': '#475569',
+    'slate_700': '#334155',
+    'slate_800': '#1e293b',
+    'slate_900': '#0f172a',
+    
+    # Blue palette (primary)
+    'blue_50': '#eff6ff',
+    'blue_100': '#dbeafe',
+    'blue_200': '#bfdbfe',
+    'blue_300': '#93c5fd',
+    'blue_400': '#60a5fa',
+    'blue_500': '#3b82f6',
+    'blue_600': '#2563eb',
+    'blue_700': '#1d4ed8',
+    'blue_800': '#1e40af',
+    'blue_900': '#1e3a8a',
+    
+    # Orange palette (accent)
+    'orange_50': '#fff7ed',
+    'orange_100': '#ffedd5',
+    'orange_200': '#fed7aa',
+    'orange_300': '#fdba74',
+    'orange_400': '#fb923c',
+    'orange_500': '#f97316',
+    'orange_600': '#ea580c',
+    'orange_700': '#c2410c',
+    'orange_800': '#9a3412',
+    'orange_900': '#7c2d12',
+    
+    # Semantic colors
+    'success': '#10b981',
+    'warning': '#f59e0b',
+    'error': '#ef4444',
+    'info': '#3b82f6',
+}
+
+
 # Theme definitions
 THEMES: Dict[str, str] = {}
 
@@ -1294,6 +1342,410 @@ QToolBar {
 
 
 # ============================================================================
+# CONSTRUCTION MANAGER PRO THEME (Modern Design System)
+# ============================================================================
+THEMES["construction_pro"] = """
+/* ========== GLOBAL ========== */
+QMainWindow {
+    background-color: #f8fafc;
+}
+
+QWidget {
+    font-family: "Segoe UI", "Inter", "Arial", sans-serif;
+    font-size: 10pt;
+    background-color: transparent;
+    color: #0f172a;
+}
+
+/* ========== DIALOGS ========== */
+QDialog {
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+/* ========== SIDEBAR (Dark) ========== */
+#sidebar {
+    background-color: #0f172a;
+    border-right: 1px solid #1e293b;
+}
+
+#sidebarHeader {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+
+#sidebarFooter {
+    background-color: #1e293b;
+}
+
+/* ========== MENUS ========== */
+QMenuBar {
+    background-color: #ffffff;
+    color: #0f172a;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 4px;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: #f1f5f9;
+}
+
+QMenuBar::item:pressed {
+    background-color: #e2e8f0;
+}
+
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 8px 24px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #f1f5f9;
+}
+
+/* ========== TOOLBARS ========== */
+QToolBar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    spacing: 4px;
+    padding: 4px;
+}
+
+QToolButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #475569;
+}
+
+QToolButton:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+QToolButton:pressed {
+    background-color: #e2e8f0;
+}
+
+/* ========== BUTTONS ========== */
+QPushButton {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background-color: #2563eb;
+}
+
+QPushButton:pressed {
+    background-color: #1d4ed8;
+}
+
+QPushButton:disabled {
+    background-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+QPushButton[class="secondary"] {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+QPushButton[class="secondary"]:hover {
+    background-color: #e2e8f0;
+}
+
+/* ========== TABLES ========== */
+QTableWidget {
+    background-color: #ffffff;
+    alternate-background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    gridline-color: #e2e8f0;
+}
+
+QHeaderView::section {
+    background-color: #f8fafc;
+    color: #64748b;
+    padding: 8px;
+    border: none;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+QTableWidget::item {
+    padding: 8px;
+    color: #1e293b;
+}
+
+QTableWidget::item:selected {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+/* ========== SCROLLBARS ========== */
+QScrollBar:vertical {
+    border: none;
+    background: #f1f5f9;
+    width: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: #cbd5e1;
+    border-radius: 5px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #94a3b8;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    background: #f1f5f9;
+    height: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #cbd5e1;
+    border-radius: 5px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #94a3b8;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    border: none;
+    background: none;
+}
+
+/* ========== LINE EDITS ========== */
+QLineEdit {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QLineEdit:focus {
+    border: 2px solid #3b82f6;
+}
+
+QLineEdit:disabled {
+    background-color: #f8fafc;
+    color: #94a3b8;
+}
+
+/* ========== COMBO BOXES ========== */
+QComboBox {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QComboBox:hover {
+    border: 1px solid #cbd5e1;
+}
+
+QComboBox:focus {
+    border: 2px solid #3b82f6;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 24px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #0f172a;
+    selection-background-color: #dbeafe;
+    selection-color: #1e40af;
+}
+
+/* ========== TEXT EDITS ========== */
+QTextEdit, QPlainTextEdit {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QTextEdit:focus, QPlainTextEdit:focus {
+    border: 2px solid #3b82f6;
+}
+
+/* ========== GROUP BOXES ========== */
+QGroupBox {
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    background-color: #ffffff;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 8px;
+    background-color: #ffffff;
+}
+
+/* ========== STATUS BAR ========== */
+QStatusBar {
+    background-color: #ffffff;
+    color: #64748b;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* ========== PROGRESS BARS ========== */
+QProgressBar {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    text-align: center;
+    background-color: #f1f5f9;
+}
+
+QProgressBar::chunk {
+    background-color: #3b82f6;
+    border-radius: 5px;
+}
+
+/* ========== TABS ========== */
+QTabWidget::pane {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+QTabBar::tab {
+    background-color: #f8fafc;
+    color: #64748b;
+    padding: 8px 16px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: #ffffff;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #f1f5f9;
+}
+
+/* ========== SPIN BOXES ========== */
+QSpinBox, QDoubleSpinBox {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QSpinBox:focus, QDoubleSpinBox:focus {
+    border: 2px solid #3b82f6;
+}
+
+/* ========== DATE/TIME EDITS ========== */
+QDateEdit, QDateTimeEdit, QTimeEdit {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QDateEdit:focus, QDateTimeEdit:focus, QTimeEdit:focus {
+    border: 2px solid #3b82f6;
+}
+
+/* ========== CHECKBOXES ========== */
+QCheckBox {
+    spacing: 8px;
+    color: #0f172a;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    image: none;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #94a3b8;
+}
+
+/* ========== RADIO BUTTONS ========== */
+QRadioButton {
+    spacing: 8px;
+    color: #0f172a;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 9px;
+    background-color: #ffffff;
+}
+
+QRadioButton::indicator:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+QRadioButton::indicator:hover {
+    border-color: #94a3b8;
+}
+"""
+
+
+# ============================================================================
 # Theme Management Functions
 # ============================================================================
 
@@ -1346,3 +1798,39 @@ def apply_theme(app, theme_name: str) -> None:
     _current_theme = theme_name
     
     logger.info(f"Theme '{theme_name}' applied successfully")
+
+# ============================================================================
+# ThemeManager Class (OOP Wrapper)
+# ============================================================================
+
+class ThemeManager:
+    """
+    Object-oriented wrapper for theme management.
+    Provides an instance-based interface for theme operations.
+    """
+    
+    def __init__(self):
+        """Initialize the theme manager"""
+        self.current_theme = get_current_theme()
+    
+    def get_available_themes(self) -> List[str]:
+        """Get list of available theme names"""
+        return get_available_themes()
+    
+    def get_current_theme(self) -> str:
+        """Get the name of the currently active theme"""
+        return get_current_theme()
+    
+    def apply_theme(self, app, theme_name: str) -> None:
+        """
+        Apply a theme to the application.
+        
+        Args:
+            app: QApplication or QMainWindow instance
+            theme_name: Name of the theme to apply
+        
+        Raises:
+            ValueError: If theme_name is not valid
+        """
+        apply_theme(app, theme_name)
+        self.current_theme = theme_name
