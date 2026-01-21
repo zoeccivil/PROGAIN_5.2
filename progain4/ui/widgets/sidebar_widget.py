@@ -278,3 +278,9 @@ class SidebarWidget(QWidget):
         # In compact mode, this just emits the signal
         if cuenta_id is not None or cuenta_id in self.account_buttons:
             self._on_account_clicked(cuenta_id)
+    
+    def refresh(self):
+        """Refresh the sidebar - stub for backward compatibility"""
+        # In compact mode, there's nothing to refresh
+        # Accounts are not displayed
+        logger.debug("Sidebar refresh called (no-op in compact mode)")
