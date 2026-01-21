@@ -27,12 +27,12 @@ from progain4.ui.dialogs.project_dialog import ProjectDialog
 from progain4.ui.reports.gastos_categoria_report import GastosPorCategoriaWindowFirebase
 from progain4.ui.dialogs.gestion_cuentas_maestras_dialog import GestionCuentasMaestrasDialog
 from progain4.ui.dialogs.gestion_cuentas_proyecto_dialog import GestionCuentasProyectoDialog
-from progain4.ui.dialogs. gestion_categorias_maestras_dialog import GestionCategoriasMaestrasDialog
+from progain4.ui.dialogs.gestion_categorias_maestras_dialog import GestionCategoriasMaestrasDialog
 from progain4.ui.dialogs.gestion_categorias_proyecto_dialog import GestionCategoriasProyectoDialog
 from progain4.ui.dialogs.gestion_subcategorias_proyecto_dialog import GestionSubcategoriasProyectoDialog
 from progain4.ui.dialogs.gestion_presupuestos_dialog import GestionPresupuestosDialog
 from progain4.ui.dialogs.gestion_presupuestos_subcategorias_dialog import GestionPresupuestosSubcategoriasDialog
-from progain4.ui.dialogs. import_categories_dialog import ImportCategoriesDialog
+from progain4.ui.dialogs.import_categories_dialog import ImportCategoriesDialog
 
 # Dashboards
 from progain4.ui.dashboards.dashboard_gastos_avanzado_window_firebase import (

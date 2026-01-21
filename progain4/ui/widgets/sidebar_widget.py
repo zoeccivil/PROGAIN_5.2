@@ -276,7 +276,8 @@ class SidebarWidget(QWidget):
     def select_account(self, cuenta_id: Optional[str]):
         """Programmatically select an account - kept for backward compatibility"""
         # In compact mode, this just emits the signal
-        if cuenta_id is not None or cuenta_id in self.account_buttons:
+        # Fixed: use 'and' instead of 'or' to properly check both conditions
+        if cuenta_id is None or cuenta_id in self.account_buttons:
             self._on_account_clicked(cuenta_id)
     
     def refresh(self):
