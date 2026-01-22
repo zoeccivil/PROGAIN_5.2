@@ -1,0 +1,51 @@
+from ui.modern.theme_config import COLORS, FONTS, SPACING, get_button_style
+
+2. Gestión de Categorías:
+category_manager.py o donde se gestionan categorías/subcategorías
+Necesito ver cómo las cargas desde Firebase
+
+3. Código de Eliminación/Anulación:
+Donde se implementa el método que responde a transaction_deleted signal
+Probablemente en main_window4.py
+
+4. Adjuntos:
+Ya veo que usas AttachmentsViewerDialog ✅
+¿Tienes attachments_upload_widget.py o similar para SUBIR adjuntos?
+
+A) "Optimizar otra página" (Obras, Caja, Reportes)
+B) "Agregar features a Transacciones" (gráficos, exportación, búsqueda avanzada)
+C) "Mejorar el Dashboard" (más métricas, gráficos)
+D) "Implementar nombre real del proyecto" (arreglar ahora)
+E) "Otro aspecto específico" (dime qué)
+🎯 PRÓXIMOS PASOS OPCIONALES
+Ahora que la base está funcionando perfectamente, podemos:
+
+Opción A: Completar Otras Páginas
+Migrar página de Obras (proyectos)
+Migrar página de Flujo de Caja
+Migrar página de Reportes
+Opción B: Mejorar Transacciones
+Agregar gráficos de ingresos vs gastos
+Implementar exportación a Excel/PDF
+Agregar búsqueda avanzada con múltiples filtros
+Opción C: Optimizaciones Adicionales
+Implementar paginación para proyectos con miles de transacciones
+Agregar modo offline con caché persistente
+Implementar búsqueda full-text en Firebase
+Opción D: Features Nuevos
+Dashboard analytics con KPIs
+Presupuestos por categoría
+Alertas de gastos excesivos
+Conciliación bancaria automática
+📢 ¿QUÉ SIGUE?
+Dime qué quieres hacer:
+
+A) "Migrar otra página:  [Obras/Caja/Reportes]" → Migramos la siguiente
+
+B) "Mejorar transacciones con [gráficos/exportación/etc]" → Agregamos features
+
+C) "Optimizar performance aún más" → Implementamos caché persistente/paginación
+
+D) "Hacer un resumen completo de lo logrado" → Documento final con toda la arquitectura
+
+E) "Estoy satisfecho, terminamos aquí" → Te doy el resumen final

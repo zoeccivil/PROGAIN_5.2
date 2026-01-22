@@ -279,7 +279,36 @@ class FirebaseClient:
                 logger.error(f"Error obteniendo cuentas del proyecto {proyecto_id}: {e}")
                 return []
             
-
+    def update_proyecto(self, proyecto_id:  str, data: dict) -> bool:
+        """
+        Actualizar un proyecto existente. 
+        
+        Args:
+            proyecto_id: ID del proyecto
+            data: Diccionario con los campos a actualizar
+        
+        Returns:
+            True si se actualizó correctamente
+        """
+        try:
+            if not self.is_initialized():
+                logger.error("Firebase not initialized")
+                return False
+            
+            # Referencia al documento
+            proyecto_ref = self.db.collection('proyectos').document(proyecto_id)
+            
+            # Actualizar
+            proyecto_ref.update(data)
+            
+            logger.info(f"Proyecto {proyecto_id} actualizado")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating proyecto {proyecto_id}: {e}")
+            return False
+        
+        
     def create_cuenta(
         self,
         proyecto_id: str,

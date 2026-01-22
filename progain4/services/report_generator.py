@@ -1106,7 +1106,7 @@ class ReportGenerator:
             balance = total_ingresos - total_gastos
             color_bal = COLOR_INGRESO if balance >= 0 else COLOR_GASTO
             pdf.set_text_color(*color_bal)
-            pdf.cell(col_w, 10, f"{self.currency} {balance:,. 2f}", 0, 1, 'C')
+            pdf.cell(col_w, 10, f"{self.currency} {balance:,.2f}", 0, 1, 'C')
 
             # ========== SECCIÓN DE ADJUNTOS ==========
             if self. firebase_client and self.proyecto_id and "_adjuntos_paths" in self.df. columns:

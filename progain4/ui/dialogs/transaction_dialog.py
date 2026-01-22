@@ -479,7 +479,7 @@ class TransactionDialog(QDialog):
             filename = os.path.basename(file_path)
             try:
                 file_size = os.path.getsize(file_path) / (1024 * 1024)
-                self.attachments_list. addItem(f"📎 {filename} ({file_size:. 2f} MB) (nuevo)")
+                self.attachments_list. addItem(f"📎 {filename} ({file_size:.2f} MB) (nuevo)")
             except:
                 self.attachments_list. addItem(f"📎 {filename} (nuevo)")
     
