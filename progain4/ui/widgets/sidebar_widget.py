@@ -22,6 +22,19 @@ from PyQt6.QtGui import QFont
 from typing import List, Dict, Any, Optional
 import logging
 
+# Import modern components
+try:
+    from progain4.ui.widgets.modern_nav_button import ModernNavButton
+    from progain4.ui.theme_manager import DESIGN_COLORS
+except ImportError:
+    ModernNavButton = None
+    DESIGN_COLORS = {
+        'slate_900': '#0f172a',
+        'slate_800': '#1e293b',
+        'blue_600': '#2563eb',
+    }
+    print("⚠️ ModernNavButton or DESIGN_COLORS not found - using fallback")
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,29 +74,129 @@ class SidebarWidget(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Header section
-        header = self._create_header()
-        main_layout.addWidget(header)
+        # Check if we're in modern mode (80px width) or classic mode (220-350px)
+        # Modern mode uses ModernNavButton, classic mode uses the traditional layout
+        is_modern_mode = ModernNavButton is not None and self.minimumWidth() == 80
+        
+        if is_modern_mode:
+            # === MODERN MODE: 80px Dark Sidebar ===
+            self.setFixedWidth(80)
+            self.setStyleSheet(f"""
+                SidebarWidget {{
+                    background-color: {DESIGN_COLORS['slate_900']};
+                    border-right: 1px solid {DESIGN_COLORS['slate_800']};
+                }}
+            """)
+            
+            # Logo container (top)
+            logo_container = QWidget()
+            logo_container.setFixedSize(64, 64)
+            logo_container.setStyleSheet(f"""
+                QWidget {{
+                    background-color: {DESIGN_COLORS['blue_600']};
+                    border-radius: 12px;
+                }}
+            """)
+            logo_layout = QVBoxLayout(logo_container)
+            logo_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            # Icono placeholder
+            logo_label = QLabel("🏗️")
+            logo_label.setStyleSheet("font-size: 28px;")
+            logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            logo_layout.addWidget(logo_label)
+            
+            main_layout.addWidget(logo_container, alignment=Qt.AlignmentFlag.AlignHCenter)
+            main_layout.addSpacing(32)
+            
+            # Navigation buttons with ModernNavButton
+            nav_layout = QVBoxLayout()
+            nav_layout.setSpacing(16)
+            nav_layout.setContentsMargins(8, 0, 8, 0)
+            
+            # Create modern nav buttons
+            self.btn_panel = ModernNavButton("📊", "Panel")
+            self.btn_obras = ModernNavButton("🏗️", "Obras")
+            self.btn_caja = ModernNavButton("💰", "Caja")
+            self.btn_reportes = ModernNavButton("📊", "Reportes")
+            
+            # Connect signals
+            self.btn_panel.clicked.connect(lambda: self._on_nav_clicked('dashboard'))
+            self.btn_obras.clicked.connect(lambda: self._on_nav_clicked('projects'))
+            self.btn_caja.clicked.connect(lambda: self._on_nav_clicked('transactions'))
+            self.btn_reportes.clicked.connect(lambda: self._on_nav_clicked('reports'))
+            
+            # Store buttons for later access
+            self.navigation_buttons = {
+                'dashboard': self.btn_panel,
+                'projects': self.btn_obras,
+                'transactions': self.btn_caja,
+                'reports': self.btn_reportes,
+            }
+            
+            # Add to layout
+            nav_layout.addWidget(self.btn_panel)
+            nav_layout.addWidget(self.btn_obras)
+            nav_layout.addWidget(self.btn_caja)
+            nav_layout.addWidget(self.btn_reportes)
+            
+            main_layout.addLayout(nav_layout)
+            main_layout.addStretch()
+            
+            # Activate first button
+            self.btn_panel.set_active(True)
+            
+            print("✅ Sidebar inicializado en modo moderno (80px)")
+        else:
+            # === CLASSIC MODE: 220-350px Wide Sidebar ===
+            # Header section
+            header = self._create_header()
+            main_layout.addWidget(header)
 
-        # Navigation section
-        nav_section = self._create_navigation_section()
-        main_layout.addWidget(nav_section)
+            # Navigation section
+            nav_section = self._create_navigation_section()
+            main_layout.addWidget(nav_section)
 
-        # Accounts section (scrollable)
-        accounts_section = self._create_accounts_section()
-        main_layout.addWidget(accounts_section, stretch=1)
+            # Accounts section (scrollable)
+            accounts_section = self._create_accounts_section()
+            main_layout.addWidget(accounts_section, stretch=1)
 
-        # Footer section (quick actions)
-        footer = self._create_footer()
-        main_layout.addWidget(footer)
+            # Footer section (quick actions)
+            footer = self._create_footer()
+            main_layout.addWidget(footer)
+
+            # Width constraints; el color vendrá del tema
+            self.setMinimumWidth(220)
+            self.setMaximumWidth(350)
+            
+            print("✅ Sidebar inicializado en modo clásico")
 
         self.setLayout(main_layout)
+    
+    def _on_nav_clicked(self, page_name: str):
+        """Handle modern navigation button clicks"""
+        # Deactivate all buttons
+        if hasattr(self, 'btn_panel'):
+            for btn in [self.btn_panel, self.btn_obras, self.btn_caja, self.btn_reportes]:
+                if btn:
+                    btn.set_active(False)
+        
+        # Activate clicked button
+        button_map = {
+            'dashboard': getattr(self, 'btn_panel', None),
+            'projects': getattr(self, 'btn_obras', None),
+            'transactions': getattr(self, 'btn_caja', None),
+            'reports': getattr(self, 'btn_reportes', None),
+        }
+        
+        active_btn = button_map.get(page_name)
+        if active_btn:
+            active_btn.set_active(True)
+        
+        # Emit navigation signal
+        self.navigation_changed.emit(page_name)
+        logger.info(f"Sidebar: Navigation changed to {page_name}")
 
-        # Width constraints; el color vendrá del tema
-        self.setMinimumWidth(220)
-        self.setMaximumWidth(350)
-
-        # NO setStyleSheet aquí: el estilo viene del theme_manager
 
     def _create_header(self) -> QWidget:
         """Create the header section with app name and project"""

@@ -1,0 +1,9 @@
+"""
+Modern Dialogs Module
+
+Contains modern UI dialogs for PROGRAIN 5.0
+"""
+
+from .transaction_dialog_modern import ModernTransactionDialog
+
+__all__ = ['ModernTransactionDialog']

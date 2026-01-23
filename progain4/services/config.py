@@ -288,3 +288,95 @@ class ConfigManager:
         """
         _, bucket = self.get_firebase_config()
         return bucket
+    
+    # ==================== UI PREFERENCE ====================
+    
+    KEY_UI_PREFERENCE = "ui/preference"
+    
+    def get_ui_preference(self) -> Optional[str]:
+        """
+        Get the saved UI preference.
+        
+        Returns:
+            'classic' or 'modern', or None if not set
+        """
+        ui_pref = self.settings.value(self.KEY_UI_PREFERENCE, None)
+        if ui_pref in ['classic', 'modern']:
+            return str(ui_pref)
+        return None
+    
+    def set_ui_preference(self, ui_type: str) -> bool:
+        """
+        Save UI preference.
+        
+        Args:
+            ui_type: 'classic' or 'modern'
+            
+        Returns:
+            True if saved successfully
+        """
+        if ui_type not in ['classic', 'modern']:
+            logger.error(f"Invalid UI type: {ui_type}")
+            return False
+        
+        try:
+            self.settings.setValue(self.KEY_UI_PREFERENCE, ui_type)
+            self.settings.sync()
+            logger.info(f"UI preference saved: {ui_type}")
+            return True
+        except Exception as e:
+            logger.error(f"Error saving UI preference: {e}")
+            return False
+    
+    def clear_ui_preference(self) -> bool:
+        """Clear the saved UI preference"""
+        try: 
+            self.settings.remove(self.KEY_UI_PREFERENCE)
+            self.settings.sync()
+            logger.info("UI preference cleared")
+            return True
+        except Exception as e:
+            logger.error(f"Error clearing UI preference: {e}")
+            return False
+        
+    # ==================== LAST PROJECT ====================
+    
+    KEY_LAST_PROJECT_ID = "app/last_project_id"
+    KEY_LAST_PROJECT_NAME = "app/last_project_name"
+    
+    def get_last_project(self) -> Optional[Tuple[str, str]]: 
+        """
+        Get the last used project. 
+        
+        Returns:
+            Tuple of (project_id, project_name) or None if not set
+        """
+        project_id = self.settings.value(self.KEY_LAST_PROJECT_ID, None)
+        project_name = self.settings.value(self.KEY_LAST_PROJECT_NAME, None)
+        
+        if project_id and project_name:
+            logger.info(f"Loaded last project: {project_name} ({project_id})")
+            return str(project_id), str(project_name)
+        
+        return None
+    
+    def set_last_project(self, project_id:  str, project_name: str) -> bool:
+        """
+        Save the last used project.
+        
+        Args:
+            project_id: Project ID
+            project_name: Project name
+            
+        Returns:
+            True if saved successfully
+        """
+        try: 
+            self.settings.setValue(self.KEY_LAST_PROJECT_ID, str(project_id))
+            self.settings.setValue(self.KEY_LAST_PROJECT_NAME, str(project_name))
+            self.settings.sync()
+            logger.debug(f"Saved last project:  {project_name} ({project_id})")
+            return True
+        except Exception as e:
+            logger.error(f"Error saving last project: {e}")
+            return False
