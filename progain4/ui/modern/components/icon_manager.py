@@ -1,7 +1,7 @@
 """
 IconManager - Sistema de gestión de iconos SVG
 
-Carga y proporciona iconos SVG como QIcon con colores personalizables. 
+Carga y proporciona iconos SVG como QIcon con colores personalizables.  
 Optimizado para iconos de Lucide. dev
 """
 
@@ -15,10 +15,10 @@ import re
 
 class IconManager:
     """
-    Gestor centralizado de iconos SVG.   
+    Gestor centralizado de iconos SVG.     
     
-    Permite cargar iconos SVG y cambiarles el color dinámicamente.  
-    Compatible con iconos de Lucide que usan 'currentColor'. 
+    Permite cargar iconos SVG y cambiarles el color dinámicamente.   
+    Compatible con iconos de Lucide que usan 'currentColor'.   
     """
     
     _instance = None
@@ -36,26 +36,31 @@ class IconManager:
         if self._initialized:
             return
         
-        # Ruta a la carpeta de iconos
-        self. icons_dir = Path(__file__).parent.parent / "assets" / "icons"
-        
+        # ✅ CORREGIDO: Ruta correcta a la carpeta de iconos (Modern UI)
+        # ✅ CORRECTO:
+        self.icons_dir = Path(__file__).parent.parent / "assets" / "icons"        
         # Verificar que la carpeta existe
         if not self.icons_dir.exists():
-            print(f"⚠️ Advertencia: Carpeta de iconos no encontrada: {self.icons_dir}")
+            print(f"⚠️ Advertencia: Carpeta de iconos no encontrada: {self. icons_dir}")
+            print(f"   Ruta absoluta: {self.icons_dir. absolute()}")
             self.icons_dir.mkdir(parents=True, exist_ok=True)
         
         self._initialized = True
         
-        print(f"✅ IconManager inicializado - Ruta: {self.icons_dir}")
+        print(f"✅ IconManager inicializado - Ruta:  {self.icons_dir}")
+        
+        # Contar iconos disponibles
+        icon_count = len(list(self.icons_dir.glob("*.svg"))) if self.icons_dir.exists() else 0
+        print(f"   Iconos SVG encontrados: {icon_count}")
     
     def get_icon(self, icon_name: str, color: str = "#000000", size: int = 24) -> QIcon:
         """
         Obtener un icono SVG con color personalizado.
         
         Args:
-            icon_name:   Nombre del archivo SVG sin extensión (ej: "layout-dashboard")
-            color: Color en formato hex (ej: "#ffffff", "#94a3b8")
-            size: Tamaño del icono en pixels
+            icon_name:    Nombre del archivo SVG sin extensión (ej: "layout-dashboard")
+            color:  Color en formato hex (ej:  "#ffffff", "#94a3b8")
+            size:  Tamaño del icono en pixels
             
         Returns:
             QIcon con el icono cargado
@@ -79,7 +84,7 @@ class IconManager:
         try:
             with open(svg_path, 'r', encoding='utf-8') as f:
                 svg_content = f.read()
-        except Exception as e: 
+        except Exception as e:  
             print(f"❌ Error leyendo icono {icon_name}: {e}")
             return QIcon()
         
@@ -91,12 +96,12 @@ class IconManager:
         renderer = QSvgRenderer(svg_bytes)
         
         if not renderer.isValid():
-            print(f"❌ SVG inválido:  {icon_name}")
+            print(f"❌ SVG inválido:    {icon_name}")
             return QIcon()
         
         # Crear pixmap
         pixmap = QPixmap(size, size)
-        pixmap.fill(Qt. GlobalColor.transparent)
+        pixmap.fill(Qt.GlobalColor. transparent)
         
         # Renderizar SVG en el pixmap
         painter = QPainter(pixmap)
@@ -115,7 +120,7 @@ class IconManager:
         """
         Aplicar color al contenido SVG de forma robusta.
         
-        Maneja múltiples formatos: 
+        Maneja múltiples formatos:   
         - currentColor
         - stroke="currentColor"
         - fill="currentColor"
@@ -123,10 +128,10 @@ class IconManager:
         - fill="#000000" y variantes
         
         Args:
-            svg_content:   Contenido del SVG
-            color:  Color en formato hex
+            svg_content:    Contenido del SVG
+            color:   Color en formato hex
             
-        Returns: 
+        Returns:   
             SVG con color aplicado
         """
         # Reemplazar currentColor (con o sin comillas)
@@ -135,16 +140,16 @@ class IconManager:
         svg_content = svg_content.replace("'currentColor'", f"'{color}'")
         
         # Reemplazar stroke="#000000" y variantes
-        svg_content = re.sub(r'stroke="[#]? 000000?"', f'stroke="{color}"', svg_content)
-        svg_content = re.sub(r'stroke="[#]?000?"', f'stroke="{color}"', svg_content)
+        svg_content = re. sub(r'stroke="[#]? 000000?"', f'stroke="{color}"', svg_content)
+        svg_content = re. sub(r'stroke="[#]?000?"', f'stroke="{color}"', svg_content)
         svg_content = re.sub(r"stroke='[#]?000000? '", f"stroke='{color}'", svg_content)
-        svg_content = re.sub(r"stroke='[#]?000? '", f"stroke='{color}'", svg_content)
+        svg_content = re.sub(r"stroke='[#]? 000? '", f"stroke='{color}'", svg_content)
         
         # Reemplazar fill="#000000" y variantes (para iconos que usan fill)
-        svg_content = re.sub(r'fill="[#]?000000?"', f'fill="{color}"', svg_content)
+        svg_content = re. sub(r'fill="[#]?000000?"', f'fill="{color}"', svg_content)
         svg_content = re.sub(r'fill="[#]?000?"', f'fill="{color}"', svg_content)
-        svg_content = re.sub(r"fill='[#]?000000?'", f"fill='{color}'", svg_content)
-        svg_content = re.sub(r"fill='[#]?000?'", f"fill='{color}'", svg_content)
+        svg_content = re.sub(r"fill='[#]?000000? '", f"fill='{color}'", svg_content)
+        svg_content = re.sub(r"fill='[#]? 000?'", f"fill='{color}'", svg_content)
         
         # Reemplazar stroke="black" y fill="black"
         svg_content = svg_content.replace('stroke="black"', f'stroke="{color}"')
@@ -159,11 +164,11 @@ class IconManager:
         Obtener un pixmap del icono (para usar en QLabel).
         
         Args:
-            icon_name:  Nombre del archivo SVG
-            color:  Color hex
-            size:   Tamaño en pixels
+            icon_name:   Nombre del archivo SVG
+            color:   Color hex
+            size:    Tamaño en pixels
             
-        Returns:  
+        Returns:   
             QPixmap del icono
         """
         icon = self.get_icon(icon_name, color, size)
@@ -180,7 +185,7 @@ class IconManager:
             print("❌ Carpeta de iconos no existe")
             return []
         
-        icons = [f.stem for f in self.icons_dir.glob("*. svg")]
+        icons = [f. stem for f in self.icons_dir.glob("*. svg")]
         print(f"📁 {len(icons)} iconos disponibles:")
         for icon in sorted(icons):
             print(f"   • {icon}")

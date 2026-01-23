@@ -2,7 +2,7 @@
 """
 PROGRAIN 4.0 / 5.0 Main Application Entry Point
 
-Firebase-based personal finance management application with UI selector.
+Firebase-based personal finance management application with UI selector. 
 Run with: python progain4/main_ynab.py
 """
 
@@ -11,6 +11,7 @@ import os
 import logging
 import json
 from typing import Optional, Tuple
+from threading import Thread
 
 # ✅ CRÍTICO: Importar QtWebEngineWidgets ANTES de QApplication
 # Esto configura automáticamente Qt. AA_ShareOpenGLContexts
@@ -45,7 +46,7 @@ try:
     from progain4.ui.theme_manager_improved import theme_manager
     logger_temp = logging.getLogger(__name__)
     logger_temp.info("Using improved theme manager")
-except ImportError:
+except ImportError: 
     from progain4.ui import theme_manager
     logger_temp = logging.getLogger(__name__)
     logger_temp.info("Using standard theme manager")
@@ -68,11 +69,12 @@ class PROGRAIN4App:
     """
     Main application class for PROGRAIN 4.0/5.0
 
-    Handles: 
+    Handles:
     - Firebase initialization with validation
     - Project selection with automatic last project loading
     - UI selection (Classic vs Modern)
     - Main window creation
+    - Background precaching of transactions
     """
 
     def __init__(self):
@@ -102,19 +104,19 @@ class PROGRAIN4App:
             logger.warning(f"Could not apply theme '{theme_to_apply}': {e}. Using default.")
             try:
                 theme_manager.apply_theme(self.app, "light")
-            except: 
+            except:
                 logger.error("Could not apply default theme")
 
     def run(self) -> int:
         """
-        Run the application.
+        Run the application. 
 
         Returns:
             Exit code
         """
         try:
             # Step 1: Initialize Firebase with validation
-            if not self. initialize_firebase():
+            if not self.initialize_firebase():
                 logger.error("Firebase initialization failed")
                 return 1
 
@@ -126,10 +128,13 @@ class PROGRAIN4App:
 
             proyecto_id, proyecto_nombre = proyecto_result
 
+            # ✅ Step 2. 5:  Precargar transacciones en background (NUEVO)
+            self._precargar_transacciones_background()
+
             # Step 3: Select UI (checks for saved preference first)
             ui_type = self.select_ui_interface()
-            if not ui_type: 
-                logger.info("No UI selected, exiting")
+            if not ui_type:
+                logger. info("No UI selected, exiting")
                 return 0
 
             # Step 4: Launch appropriate UI
@@ -228,7 +233,7 @@ class PROGRAIN4App:
 
             dialog = FirebaseConfigDialog(parent=None, config_manager=self.config_manager)
 
-            if dialog. exec() != FirebaseConfigDialog.DialogCode.Accepted:
+            if dialog.exec() != FirebaseConfigDialog.DialogCode.Accepted:
                 logger.info("Firebase configuration cancelled by user")
                 QMessageBox.warning(
                     None,
@@ -256,7 +261,7 @@ class PROGRAIN4App:
 
         # Initialize Firebase client
         try:
-            logger. info(f"Initializing Firebase with credentials: {credentials_path}")
+            logger.info(f"Initializing Firebase with credentials:  {credentials_path}")
             logger.info(f"Storage bucket: {storage_bucket}")
 
             self.firebase_client = FirebaseClient()
@@ -301,7 +306,7 @@ class PROGRAIN4App:
                 None,
                 "Error de conexión con Firebase",
                 dialog_msg,
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton. No,
                 QMessageBox.StandardButton.Yes,
             )
 
@@ -338,7 +343,7 @@ class PROGRAIN4App:
 
     def _validate_credentials_file(self, credentials_path: str) -> Tuple[bool, str]: 
         """
-        Validate that credentials file is valid JSON with correct structure. 
+        Validate that credentials file is valid JSON with correct structure.
 
         Args:
             credentials_path: Path to credentials file
@@ -370,11 +375,11 @@ class PROGRAIN4App:
                 return False, f"Campos faltantes en credenciales: {', '.join(missing_fields)}"
 
             private_key = creds.get("private_key", "")
-            if "\\n" not in private_key and "\n" not in private_key:
+            if "\\n" not in private_key and "\n" not in private_key: 
                 return False, "El campo 'private_key' no tiene el formato correcto (falta \\n)"
 
             if creds.get("type") != "service_account":
-                return False, f"Tipo de credencial inválido: {creds.get('type')} (debe ser 'service_account')"
+                return False, f"Tipo de credencial inválido: {creds. get('type')} (debe ser 'service_account')"
 
             logger.info(f"✅ Credentials file validated:  {credentials_path}")
             logger.info(f"   Project ID: {creds.get('project_id')}")
@@ -389,7 +394,7 @@ class PROGRAIN4App:
 
     # ==================== PROJECT SELECTION ====================
 
-    def select_project(self) -> Tuple[Optional[str], Optional[str]]:
+    def select_project(self) -> Tuple[Optional[str], Optional[str]]: 
         """
         Select or load last used project automatically.
 
@@ -399,7 +404,7 @@ class PROGRAIN4App:
         logger.info("Loading projects...")
 
         try:
-            proyectos = self.firebase_client. get_proyectos()
+            proyectos = self.firebase_client.get_proyectos()
             logger.info(f"Found {len(proyectos)} existing projects")
 
             if not proyectos:
@@ -410,10 +415,10 @@ class PROGRAIN4App:
                     "Sin proyectos",
                     "No se encontraron proyectos en Firebase.\n\n" "¿Desea crear un nuevo proyecto?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox. StandardButton.Yes,
+                    QMessageBox.StandardButton.Yes,
                 )
 
-                if reply == QMessageBox.StandardButton.No:
+                if reply == QMessageBox. StandardButton.No:
                     return None, None
 
                 dialog = ProjectDialog(proyectos=[])
@@ -422,14 +427,14 @@ class PROGRAIN4App:
                     return None, None
 
                 result = dialog.get_selected_project()
-                if not result or result[0] is not None: 
+                if not result or result[0] is not None:
                     return None, None
 
                 _, nombre, descripcion = result
                 logger.info(f"Creating new project: {nombre}")
 
                 try:
-                    proyecto_id = self.firebase_client. create_proyecto(nombre, descripcion)
+                    proyecto_id = self.firebase_client.create_proyecto(nombre, descripcion)
 
                     if not proyecto_id:
                         raise Exception("create_proyecto returned None")
@@ -448,7 +453,7 @@ class PROGRAIN4App:
             # Try to load last used project
             last_project_id, last_project_name = self._load_last_project()
 
-            if last_project_id: 
+            if last_project_id:
                 # Verify project still exists
                 proyecto_existe = False
                 for p in proyectos:
@@ -467,7 +472,7 @@ class PROGRAIN4App:
                     logger. info(f"Loading last used project: {last_project_name} ({last_project_id})")
                     return last_project_id, last_project_name
                 else:
-                    logger.warning(f"Last project {last_project_id} no longer exists")
+                    logger. warning(f"Last project {last_project_id} no longer exists")
 
             # Fallback:  Load first available project
             primer_proyecto = proyectos[0]
@@ -477,7 +482,7 @@ class PROGRAIN4App:
                 if hasattr(primer_proyecto, "to_dict"):
                     data = primer_proyecto.to_dict()
                     proyecto_nombre = data.get("nombre", f"Proyecto {proyecto_id}")
-                else:
+                else: 
                     proyecto_nombre = f"Proyecto {proyecto_id}"
             else:
                 proyecto_id = str(primer_proyecto.get("id", ""))
@@ -501,7 +506,7 @@ class PROGRAIN4App:
         Returns:
             Tuple of (project_id, project_name) or (None, None) if not found
         """
-        try:
+        try: 
             last_project = self.config_manager.get_last_project()
             if last_project:
                 return last_project
@@ -518,11 +523,57 @@ class PROGRAIN4App:
             proyecto_id: Project ID
             proyecto_nombre: Project name
         """
-        try: 
-            self.config_manager. set_last_project(str(proyecto_id), str(proyecto_nombre))
+        try:
+            self.config_manager.set_last_project(str(proyecto_id), str(proyecto_nombre))
             logger.debug(f"Saved last project:  {proyecto_nombre} ({proyecto_id})")
         except Exception as e:
-            logger.warning(f"Error saving last project:  {e}")
+            logger.warning(f"Error saving last project: {e}")
+
+    # ==================== BACKGROUND PRECACHING ====================
+
+    def _precargar_transacciones_background(self):
+        """
+        Precargar transacciones de todos los proyectos en background.
+        
+        Esto acelera la primera carga de ObrasPage y otras páginas
+        que necesitan transacciones. 
+        """
+        def precargar():
+            """Función interna para precarga en thread separado"""
+            try:
+                proyectos = self.firebase_client.get_proyectos()
+                total = len(proyectos)
+                
+                logger.info(f"🚀 Iniciando precarga de transacciones para {total} proyectos...")
+                
+                for idx, proyecto in enumerate(proyectos, 1):
+                    # Obtener ID del proyecto
+                    if hasattr(proyecto, "id"):
+                        proyecto_id = str(proyecto.id)
+                    elif hasattr(proyecto, "get"):
+                        proyecto_id = str(proyecto.get("id", ""))
+                    else: 
+                        continue
+                    
+                    try:
+                        # Obtener transacciones (se cachearán automáticamente)
+                        transacciones = self.firebase_client. get_transacciones_by_proyecto(proyecto_id)
+                        
+                        logger.info(f"✅ [{idx}/{total}] Precargadas {len(transacciones)} transacciones para proyecto {proyecto_id}")
+                        
+                    except Exception as e:
+                        logger.warning(f"⚠️ [{idx}/{total}] Error precargando transacciones para {proyecto_id}: {e}")
+                
+                logger.info(f"🎉 Precarga completada:  {total} proyectos procesados")
+                
+            except Exception as e:
+                logger.error(f"❌ Error en precarga de transacciones: {e}", exc_info=True)
+        
+        # Iniciar precarga en thread daemon (no bloquea la UI)
+        thread = Thread(target=precargar, daemon=True, name="TransaccionesPrecarga")
+        thread.start()
+        
+        logger.info("🚀 Precarga de transacciones iniciada en background")
 
     # ==================== UI SELECTION ====================
 
@@ -536,7 +587,7 @@ class PROGRAIN4App:
         from progain4.ui.dialogs.ui_selector_dialog import UISelectorDialog
 
         # Check if there's a saved preference
-        saved_ui = self. config_manager.get_ui_preference()
+        saved_ui = self.config_manager.get_ui_preference()
         if saved_ui:
             logger.info(f"Using saved UI preference: {saved_ui}")
             return saved_ui
@@ -546,7 +597,7 @@ class PROGRAIN4App:
 
         if dialog.exec():
             ui_type = dialog.get_selected_ui()
-            logger.info(f"User selected UI:  {ui_type}")
+            logger.info(f"User selected UI: {ui_type}")
             return ui_type
 
         return None
@@ -601,7 +652,7 @@ class PROGRAIN4App:
             config_manager=self.config_manager,
         )
 
-        self.main_window. show()
+        self.main_window.show()
 
         logger.info("Modern UI launched successfully")
         return self.app.exec()
@@ -634,10 +685,10 @@ def main():
 
         sys.exit(exit_code)
 
-    except Exception as e: 
+    except Exception as e:
         logger.exception("Fatal error in main(): %s", e)
         sys.exit(1)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()

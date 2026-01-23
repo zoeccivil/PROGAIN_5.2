@@ -165,24 +165,25 @@ class MainWindow(QMainWindow):
     
     def create_pages(self):
         """Crear las páginas del contenido principal"""
-        from . pages.dashboard_page import DashboardPage
+        from .pages.dashboard_page import DashboardPage
         from .pages.obras_page import ObrasPage
         from .pages.transactions_page import TransactionsPage
+        from .pages.cash_flow_page import CashFlowPage  # ✅ NUEVO
         from .pages.placeholder_page import PlaceholderPage
         from services.account_service import AccountService
         
         # Crear servicio de cuentas
-        self.account_service = AccountService(self.  firebase_client, self.proyecto_id)
+        self.account_service = AccountService(self.firebase_client, self.proyecto_id)
         
-        # === PÁGINA 0:  DASHBOARD ===
-        self. page_dashboard = DashboardPage(
-            firebase_client=self. firebase_client,
+        # === PÁGINA 0: DASHBOARD ===
+        self.page_dashboard = DashboardPage(
+            firebase_client=self.firebase_client,
             proyecto_id=self.proyecto_id,
             proyecto_nombre=self.proyecto_nombre,
             parent=self
         )
         self.page_dashboard.account_clicked.connect(self._on_account_clicked_from_dashboard)
-        self.pages_stack.addWidget(self. page_dashboard)
+        self.pages_stack.addWidget(self.page_dashboard)
         
         # === PÁGINA 1: OBRAS ===
         self.page_obras = ObrasPage(
@@ -193,51 +194,82 @@ class MainWindow(QMainWindow):
         self.pages_stack.addWidget(self.page_obras)
         
         # === PÁGINA 2: TRANSACCIONES ===
-        self.  page_trans = TransactionsPage(
+        self.page_trans = TransactionsPage(
             firebase_client=self.firebase_client,
             proyecto_id=self.proyecto_id,
             proyecto_nombre=self.proyecto_nombre,
             parent=self
         )
-        self.pages_stack.addWidget(self.  page_trans)
+        self.pages_stack.addWidget(self.page_trans)
         
-        # === PÁGINAS 3-5: PLACEHOLDERS ===
-        self.page_caja = PlaceholderPage(
-            icon="💰",
-            title="Flujo de Caja",
-            description="Próximamente:   Gestión detallada de flujo de efectivo por cuenta y período"
+        # === PÁGINA 3: FLUJO DE CAJA ✅ NUEVO ===
+        self.page_caja = CashFlowPage(
+            firebase_client=self.firebase_client,
+            proyecto_id=self.proyecto_id,
+            proyecto_nombre=self.proyecto_nombre,
+            parent=self
         )
-        self.pages_stack.addWidget(self. page_caja)
+        self.pages_stack.addWidget(self.page_caja)
         
-        self.page_reportes = PlaceholderPage(
-            icon="📊",
-            title="Reportes",
-            description="Próximamente:  Generación de reportes avanzados en PDF y Excel"
+        # === PÁGINA 4: REPORTES ✅ NUEVO ===
+        from .pages.reports_page import ReportsPage
+
+        self.page_reportes = ReportsPage(
+            firebase_client=self.firebase_client,
+            proyecto_id=self.proyecto_id,
+            proyecto_nombre=self.proyecto_nombre,
+            parent=self
         )
         self.pages_stack.addWidget(self.page_reportes)
         
         self.page_importar = PlaceholderPage(
             icon="📥",
             title="Importar Datos",
-            description="Próximamente:  Importación masiva desde Excel, CSV y otros formatos"
+            description="Próximamente: Importación masiva desde Excel, CSV y otros formatos"
         )
         self.pages_stack.addWidget(self.page_importar)
         
-        print("✅ 6 páginas creadas")
+        print("✅ 6 páginas creadas (Dashboard, Obras, Transacciones, Caja, Reportes, Importar)")
 
     def setup_connections(self):
-        """Conectar señales y slots"""
-        # Navegación del sidebar
-        self.  sidebar.navigation_changed.connect(self. navigate_to_page)
+        """Conectar signals y slots"""
         
-        # Header signals
-        self.header.register_clicked. connect(self.on_register_clicked)
-        self.header.project_changed.connect(self.on_project_changed)
-        self.header.search_triggered.connect(self.on_search_triggered)
-        self.header.notifications_clicked.connect(self.on_notifications_clicked)
-        self.header.user_clicked.connect(self.on_user_clicked)
+        # === SIDEBAR SIGNALS ===
+        if hasattr(self.sidebar, 'navigation_changed'):
+            self.sidebar.navigation_changed.connect(self.on_navigation_changed)
         
-        print("✅ Señales conectadas")
+        # === HEADER SIGNALS ===
+        
+        # Cambio de proyecto
+        if hasattr(self.header, 'project_changed'):
+            self.header.project_changed.connect(self.on_project_changed)
+        
+        # Búsqueda
+        if hasattr(self.header, 'search_triggered'):
+            self.header.search_triggered.connect(self.on_search_triggered)
+        
+        # Notificaciones
+        if hasattr(self.header, 'notifications_clicked'):
+            self.header.notifications_clicked.connect(self.on_notifications_clicked)
+        
+        # Usuario
+        if hasattr(self.header, 'user_clicked'):
+            self.header.user_clicked.connect(self.on_user_clicked)
+        
+        print("✅ Señales y slots conectados")
+
+    # ✅ AGREGAR ESTE MÉTODO AQUÍ:
+    def on_navigation_changed(self, page_key: str):
+        """
+        Callback cuando cambia la navegación desde el sidebar.
+        
+        Args:
+            page_key: Clave de la página ('dashboard', 'obras', 'trans', etc.)
+        """
+        logger.info(f"📍 Navigation changed from sidebar: {page_key}")
+        self.navigate_to_page(page_key)
+
+
     
     # ========== NAVEGACIÓN ==========
     
@@ -447,26 +479,13 @@ class MainWindow(QMainWindow):
     
     # ========== CALLBACKS ==========
     
-    def on_register_clicked(self):
-        """Callback cuando se hace click en Registrar"""
-        print("➕ Abriendo diálogo de registro...")
-        
-        # TODO: Aquí se abrirá el diálogo de nueva transacción
-        QMessageBox.information(
-            self,
-            "Nueva Transacción",
-            "Diálogo de registro por implementar.\n\n"
-            f"Contexto:\n"
-            f"• Página:  {self.current_page}\n"
-            f"• Proyecto: {self.  proyecto_nombre}"
-        )
     
     def on_project_changed(self, proyecto_id: str, proyecto_nombre: str):
         """
         Callback cuando cambia el proyecto desde el header O desde obras_page.
         
         Args:
-            proyecto_id:  ID del proyecto seleccionado
+            proyecto_id: ID del proyecto seleccionado
             proyecto_nombre: Nombre del proyecto
         """
         logger.info(f"🏢 Project changed: {proyecto_nombre} ({proyecto_id})")
@@ -482,25 +501,65 @@ class MainWindow(QMainWindow):
             )
             return
         
-        # ✅ CAMBIO:  Actualizar SIEMPRE, incluso si es el mismo proyecto
-        # (porque el proyecto puede haber sido editado en ObrasPage)
+        # ✅ Actualizar proyecto actual
         self.proyecto_id = proyecto_id
-        self. proyecto_nombre = proyecto_nombre
+        self.proyecto_nombre = proyecto_nombre
         
         # Actualizar título
         self.header.set_title(f"Control de Obra - {proyecto_nombre}")
         
         # Actualizar selector de proyecto en el header
-        if hasattr(self. header, 'set_current_project'):
+        if hasattr(self.header, 'set_current_project'):
             self.header.set_current_project(proyecto_id, proyecto_nombre)
         
         # Guardar en config
         if hasattr(self, 'config_manager') and self.config_manager:
-            self.config_manager. set_last_project(proyecto_id, proyecto_nombre)
+            self.config_manager.set_last_project(proyecto_id, proyecto_nombre)
         
-        # ✅ SIEMPRE recargar datos (aunque sea el mismo proyecto)
-        logger.info(f"Reloading project data for: {proyecto_nombre}")
-        self._reload_project_data()
+        # ✅ NUEVO: Actualizar TODAS las páginas con el nuevo proyecto
+        logger.info(f"Updating all pages with new project: {proyecto_nombre}")
+        
+        # Update Dashboard
+        if hasattr(self, 'page_dashboard'):
+            try:
+                self.page_dashboard.on_project_change(proyecto_id, proyecto_nombre)
+                logger.info("✅ Dashboard updated")
+            except Exception as e:
+                logger.error(f"Error updating dashboard: {e}")
+        
+        # Update Transactions
+        if hasattr(self, 'page_trans'):
+            try:
+                self.page_trans.on_project_change(proyecto_id, proyecto_nombre)
+                logger.info("✅ Transactions updated")
+            except Exception as e:
+                logger.error(f"Error updating transactions: {e}")
+        
+        # ✅ Update CashFlowPage
+        if hasattr(self, 'page_caja'):
+            try:
+                self.page_caja.on_project_change(proyecto_id, proyecto_nombre)
+                logger.info("✅ CashFlow updated")
+            except Exception as e:
+                logger.error(f"Error updating cashflow: {e}")
+        
+        # Update Obras (refresh list)
+        if hasattr(self, 'page_obras'):
+            try:
+                self.page_obras.refresh()
+                logger.info("✅ Obras refreshed")
+            except Exception as e:
+                logger.error(f"Error refreshing obras: {e}")
+        
+        logger.info("✅ All pages updated for new project")
+
+        # Update Reports
+        if hasattr(self, 'page_reportes'):
+            try:
+                self.page_reportes.on_project_change(proyecto_id, proyecto_nombre)
+                logger.info("✅ Reports updated")
+            except Exception as e:
+                logger.error(f"Error updating reports: {e}")
     
     def _reload_project_data(self):
         """Recargar todos los datos del proyecto actual"""
@@ -607,28 +666,26 @@ class MainWindow(QMainWindow):
         self.navigate_to_page('transactions')
     
     def _on_project_selected_from_obras(self, proyecto_id: str, proyecto_nombre: str):
-        """
-        Callback cuando se selecciona un proyecto desde la página de Obras.  
-        Cambia el proyecto activo y navega al Dashboard.
-        """
-        logger.info(f"Project selected from Obras page: {proyecto_nombre} ({proyecto_id})")
+        """Handle project selection from ObrasPage"""
+        logger.info(f"Project selected from Obras: {proyecto_id} - {proyecto_nombre}")
         
-        # Actualizar proyecto actual
+        # Update current project
         self.proyecto_id = proyecto_id
-        self. proyecto_nombre = proyecto_nombre
+        self.proyecto_nombre = proyecto_nombre
         
-        # Actualizar header
-        self.header.  set_current_project(proyecto_id, proyecto_nombre)
+        # Update all pages
+        if hasattr(self, 'page_dashboard'):
+            self.page_dashboard.on_project_change(proyecto_id, proyecto_nombre)
         
-        # Guardar en config
-        if hasattr(self, 'config_manager') and self.config_manager:
-            self.config_manager. set_last_project(proyecto_id, proyecto_nombre)
+        if hasattr(self, 'page_trans'):
+            self.page_trans.on_project_change(proyecto_id, proyecto_nombre)
         
-        # Recargar datos del proyecto
-        self._reload_project_data()
+        # ✅ NUEVO: Update CashFlowPage
+        if hasattr(self, 'page_caja'):
+            self.page_caja.on_project_change(proyecto_id, proyecto_nombre)
         
-        # Navegar al Dashboard
-        self.  navigate_to_page('dashboard')
+        # Navigate to dashboard
+        self.navigate_to_page('dashboard')
     
     # ========== MÉTODOS PÚBLICOS ==========
     

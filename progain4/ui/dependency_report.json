@@ -1,0 +1,592 @@
+{
+  "timestamp": "2026-01-22T14:56:21.512716",
+  "root_dir": "E:\\Dropbox\\GITHUB\\PROGAIN_5.3\\progain4\\ui",
+  "statistics": {
+    "total_files": 68,
+    "files_with_imports": 14,
+    "files_imported": 45
+  },
+  "files": [
+    "icon_manager.py",
+    "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23).py",
+    "main_window4.py",
+    "main_window_modern.py",
+    "test.py",
+    "test_themes.py",
+    "theme.py",
+    "theme_constants.py",
+    "theme_manager.py",
+    "theme_manager_improved.py",
+    "__init__.py",
+    "dashboards\\dashboard_gastos_avanzado_window_firebase.py",
+    "dashboards\\dashboard_global_cuentas_window_firebase.py",
+    "dashboards\\dashboard_ingresos_vs_gastos_window_firebase.py",
+    "dialogs\\attachments_viewer_dialog.py",
+    "dialogs\\auditoria_categorias_firebase_dialog.py",
+    "dialogs\\firebase_config_dialog.py",
+    "dialogs\\firebase_inspector_dialog.py",
+    "dialogs\\gestion_categorias_maestras_dialog.py",
+    "dialogs\\gestion_categorias_proyecto_dialog.py",
+    "dialogs\\gestion_cuentas_maestras_dialog.py",
+    "dialogs\\gestion_cuentas_proyecto_dialog.py",
+    "dialogs\\gestion_presupuestos_dialog.py",
+    "dialogs\\gestion_presupuestos_subcategorias_dialog.py",
+    "dialogs\\gestion_subcategorias_proyecto_dialog.py",
+    "dialogs\\importer_window_firebase.py",
+    "dialogs\\import_categories_dialog.py",
+    "dialogs\\irebase_config_dialog.py",
+    "dialogs\\project_dialog.py",
+    "dialogs\\transaction_dialog.py",
+    "dialogs\\transaction_dialog_modern.py",
+    "dialogs\\transfer_dialog.py",
+    "dialogs\\ui_selector_dialog.py",
+    "dialogs\\undo_history_dialog.py",
+    "dialogs\\__init__.py",
+    "modern\\main_window.py",
+    "modern\\theme_config.py",
+    "modern\\__init__.py",
+    "modern\\components\\account_card.py",
+    "modern\\components\\clean_card.py",
+    "modern\\components\\icon_manager.py",
+    "modern\\components\\nav_button.py",
+    "modern\\components\\rendimiento_card.py",
+    "modern\\components\\__init__.py",
+    "modern\\dialogs\\transaction_dialog_modern.py",
+    "modern\\pages\\dashboard_page.py",
+    "modern\\pages\\obras_page.py",
+    "modern\\pages\\obra_card.py",
+    "modern\\pages\\obra_dialog.py",
+    "modern\\pages\\placeholder_page.py",
+    "modern\\pages\\transactions_page.py",
+    "modern\\widgets\\header.py",
+    "modern\\widgets\\sidebar.py",
+    "modern\\widgets\\__init__.py",
+    "reports\\account_summary_report.py",
+    "reports\\detailed_date_report.py",
+    "reports\\gastos_categoria_report.py",
+    "reports\\resumen_por_cuenta_report.py",
+    "reports\\__init__.py",
+    "widgets\\accounts_window.py",
+    "widgets\\cashflow_window.py",
+    "widgets\\clean_card.py",
+    "widgets\\header_widget.py",
+    "widgets\\modern_nav_button.py",
+    "widgets\\progress_dialog.py",
+    "widgets\\sidebar_widget.py",
+    "widgets\\transactions_widget.py",
+    "widgets\\__init__.py"
+  ],
+  "orphans": [
+    "dashboards.dashboard_gastos_avanzado_window_firebase",
+    "dashboards.dashboard_global_cuentas_window_firebase",
+    "dashboards.dashboard_ingresos_vs_gastos_window_firebase",
+    "dialogs.attachments_viewer_dialog",
+    "dialogs.auditoria_categorias_firebase_dialog",
+    "dialogs.firebase_config_dialog",
+    "dialogs.firebase_inspector_dialog",
+    "dialogs.gestion_categorias_maestras_dialog",
+    "dialogs.gestion_categorias_proyecto_dialog",
+    "dialogs.gestion_cuentas_maestras_dialog",
+    "dialogs.gestion_cuentas_proyecto_dialog",
+    "dialogs.gestion_presupuestos_dialog",
+    "dialogs.gestion_presupuestos_subcategorias_dialog",
+    "dialogs.gestion_subcategorias_proyecto_dialog",
+    "dialogs.import_categories_dialog",
+    "dialogs.importer_window_firebase",
+    "dialogs.irebase_config_dialog",
+    "dialogs.project_dialog",
+    "dialogs.transaction_dialog",
+    "dialogs.transaction_dialog_modern",
+    "dialogs.transfer_dialog",
+    "dialogs.ui_selector_dialog",
+    "dialogs.undo_history_dialog",
+    "icon_manager",
+    "main_window4",
+    "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)",
+    "main_window_modern",
+    "modern.components.account_card",
+    "modern.components.clean_card",
+    "modern.components.icon_manager",
+    "modern.components.nav_button",
+    "modern.components.rendimiento_card",
+    "modern.dialogs.transaction_dialog_modern",
+    "modern.main_window",
+    "modern.pages.dashboard_page",
+    "modern.pages.obra_card",
+    "modern.pages.obra_dialog",
+    "modern.pages.obras_page",
+    "modern.pages.placeholder_page",
+    "modern.pages.transactions_page",
+    "modern.theme_config",
+    "modern.widgets.header",
+    "modern.widgets.sidebar",
+    "reports.account_summary_report",
+    "reports.detailed_date_report",
+    "reports.gastos_categoria_report",
+    "reports.resumen_por_cuenta_report",
+    "test",
+    "theme",
+    "theme_constants",
+    "theme_manager",
+    "theme_manager_improved",
+    "widgets.accounts_window",
+    "widgets.cashflow_window",
+    "widgets.clean_card",
+    "widgets.header_widget",
+    "widgets.modern_nav_button",
+    "widgets.progress_dialog",
+    "widgets.sidebar_widget",
+    "widgets.transactions_widget"
+  ],
+  "entry_points": [
+    "modern.main_window"
+  ],
+  "imports": {
+    "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)": [
+      "ui.dialogs.transfer_dialog",
+      "ui.dialogs.gestion_cuentas_proyecto_dialog",
+      "ui.theme_constants",
+      "ui.dialogs.transaction_dialog",
+      "ui.dialogs.gestion_subcategorias_proyecto_dialog",
+      "ui.dialogs.gestion_presupuestos_dialog",
+      "ui.reports.gastos_categoria_report",
+      "ui.dashboards.dashboard_ingresos_vs_gastos_window_firebase",
+      "ui.dialogs.gestion_presupuestos_subcategorias_dialog",
+      "ui.widgets.cashflow_window",
+      "ui.dialogs.gestion_categorias_proyecto_dialog",
+      "ui.reports.resumen_por_cuenta_report",
+      "ui.dialogs.firebase_config_dialog",
+      "services.",
+      "ui.widgets.transactions_widget",
+      "ui",
+      "ui.dialogs.",
+      "ui.dialogs.gestion_cuentas_maestras_dialog",
+      "ui.",
+      "ui.icon_manager",
+      "ui.dialogs.project_dialog",
+      "services.firebase_client",
+      "ui.dialogs.auditoria_categorias_firebase_dialog",
+      "ui.dialogs.firebase_inspector_dialog",
+      "ui.dialogs.importer_window_firebase",
+      "ui.dashboards.dashboard_gastos_avanzado_window_firebase",
+      "ui.widgets.accounts_window",
+      "ui.reports.detailed_date_report",
+      "ui.theme_manager_improved",
+      "ui.widgets.sidebar_widget"
+    ],
+    "main_window4": [
+      "ui.dialogs.transfer_dialog",
+      "ui.dialogs.gestion_cuentas_proyecto_dialog",
+      "ui.theme_constants",
+      "ui.dialogs.transaction_dialog",
+      "ui.dialogs.gestion_subcategorias_proyecto_dialog",
+      "ui.dialogs.gestion_presupuestos_dialog",
+      "ui.reports.gastos_categoria_report",
+      "ui.dashboards.dashboard_ingresos_vs_gastos_window_firebase",
+      "ui.dialogs.gestion_presupuestos_subcategorias_dialog",
+      "ui.widgets.cashflow_window",
+      "ui.dialogs.gestion_categorias_proyecto_dialog",
+      "ui.reports.resumen_por_cuenta_report",
+      "ui.dialogs.firebase_config_dialog",
+      "services.",
+      "ui.widgets.transactions_widget",
+      "ui",
+      "ui.dialogs.",
+      "ui.dialogs.gestion_cuentas_maestras_dialog",
+      "services.undo_manager",
+      "ui.",
+      "ui.icon_manager",
+      "ui.dialogs.project_dialog",
+      "services.firebase_client",
+      "ui.dialogs.auditoria_categorias_firebase_dialog",
+      "ui.dialogs.undo_history_dialog",
+      "ui.dialogs.firebase_inspector_dialog",
+      "ui.dialogs.importer_window_firebase",
+      "ui.dashboards.dashboard_gastos_avanzado_window_firebase",
+      "ui.widgets.accounts_window",
+      "ui.reports.detailed_date_report",
+      "ui.theme_manager_improved",
+      "ui.widgets.sidebar_widget"
+    ],
+    "main_window_modern": [
+      "ui.widgets.transactions_widget",
+      "ui.widgets.clean_card",
+      "ui.widgets.header_widget",
+      "ui.widgets.accounts_window",
+      "ui.theme_manager",
+      "ui.widgets.sidebar_widget"
+    ],
+    "theme_manager_improved": [
+      "ui.theme_constants"
+    ],
+    "dashboards. dashboard_gastos_avanzado_window_firebase": [
+      "services.report_generator"
+    ],
+    "dashboards. dashboard_ingresos_vs_gastos_window_firebase": [
+      "services.report_generator"
+    ],
+    "modern. pages. transactions_page": [
+      "ui.modern.components.icon_manager",
+      "",
+      "ui.dialogs.transfer_dialog",
+      "ui.modern.",
+      "ui.widgets.transactions_widget",
+      "services.undo_manager",
+      "ui.modern.theme_config",
+      "services.config",
+      "ui.modern.dialogs.transaction_dialog_modern"
+    ],
+    "reports. detailed_date_report": [
+      "services.report_generator"
+    ],
+    "reports. gastos_categoria_report": [
+      "",
+      "ui.widgets.progress_dialog",
+      "services.report_generator"
+    ],
+    "reports. resumen_por_cuenta_report": [
+      "services.report_generator"
+    ],
+    "widgets. accounts_window": [
+      "services.firebase_client",
+      "ui.dialogs.transaction_dialog",
+      "services.report_generator"
+    ],
+    "widgets. cashflow_window": [
+      "services.firebase_client",
+      "services.report_generator"
+    ],
+    "widgets. sidebar_widget": [
+      "ui.theme_manager",
+      "ui.widgets.modern_nav_button"
+    ],
+    "widgets. transactions_widget": [
+      "ui.dialogs.attachments_viewer_dialog"
+    ]
+  },
+  "imported_by": {
+    "services.firebase_client": [
+      "widgets. cashflow_window",
+      "main_window4",
+      "widgets. accounts_window",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "services.": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.widgets.transactions_widget": [
+      "main_window_modern",
+      "main_window4",
+      "modern. pages. transactions_page",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.widgets.sidebar_widget": [
+      "main_window_modern",
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.transaction_dialog": [
+      "main_window4",
+      "widgets. accounts_window",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.transfer_dialog": [
+      "main_window4",
+      "modern. pages. transactions_page",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.firebase_inspector_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.reports.resumen_por_cuenta_report": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.reports.detailed_date_report": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.project_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.reports.gastos_categoria_report": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.gestion_cuentas_maestras_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.gestion_cuentas_proyecto_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.gestion_categorias_proyecto_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.gestion_subcategorias_proyecto_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.gestion_presupuestos_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.gestion_presupuestos_subcategorias_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dashboards.dashboard_gastos_avanzado_window_firebase": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dashboards.dashboard_ingresos_vs_gastos_window_firebase": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.auditoria_categorias_firebase_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.importer_window_firebase": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.widgets.cashflow_window": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.widgets.accounts_window": [
+      "main_window_modern",
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.dialogs.firebase_config_dialog": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.theme_manager_improved": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.icon_manager": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui.theme_constants": [
+      "main_window4",
+      "theme_manager_improved",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "ui": [
+      "main_window4",
+      "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)"
+    ],
+    "services.undo_manager": [
+      "modern. pages. transactions_page",
+      "main_window4"
+    ],
+    "ui.dialogs.undo_history_dialog": [
+      "main_window4"
+    ],
+    "ui.widgets.header_widget": [
+      "main_window_modern"
+    ],
+    "ui.widgets.clean_card": [
+      "main_window_modern"
+    ],
+    "ui.theme_manager": [
+      "main_window_modern",
+      "widgets. sidebar_widget"
+    ],
+    "services.report_generator": [
+      "widgets. cashflow_window",
+      "reports. detailed_date_report",
+      "dashboards. dashboard_gastos_avanzado_window_firebase",
+      "dashboards. dashboard_ingresos_vs_gastos_window_firebase",
+      "widgets. accounts_window",
+      "reports. resumen_por_cuenta_report",
+      "reports. gastos_categoria_report"
+    ],
+    "ui.modern.theme_config": [
+      "modern. pages. transactions_page"
+    ],
+    "ui.modern.": [
+      "modern. pages. transactions_page"
+    ],
+    "ui.modern.dialogs.transaction_dialog_modern": [
+      "modern. pages. transactions_page"
+    ],
+    "ui.modern.components.icon_manager": [
+      "modern. pages. transactions_page"
+    ],
+    "services.config": [
+      "modern. pages. transactions_page"
+    ],
+    "": [
+      "modern. pages. transactions_page",
+      "reports. gastos_categoria_report"
+    ],
+    "ui.widgets.progress_dialog": [
+      "reports. gastos_categoria_report"
+    ],
+    "ui.widgets.modern_nav_button": [
+      "widgets. sidebar_widget"
+    ],
+    "ui.dialogs.attachments_viewer_dialog": [
+      "widgets. transactions_widget"
+    ]
+  },
+  "top_imported": [
+    {
+      "module": "services.report_generator",
+      "count": 7
+    },
+    {
+      "module": "services.firebase_client",
+      "count": 4
+    },
+    {
+      "module": "ui.widgets.transactions_widget",
+      "count": 4
+    },
+    {
+      "module": "ui.widgets.sidebar_widget",
+      "count": 3
+    },
+    {
+      "module": "ui.dialogs.transaction_dialog",
+      "count": 3
+    },
+    {
+      "module": "ui.dialogs.transfer_dialog",
+      "count": 3
+    },
+    {
+      "module": "ui.widgets.accounts_window",
+      "count": 3
+    },
+    {
+      "module": "ui.theme_constants",
+      "count": 3
+    },
+    {
+      "module": "services.",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.firebase_inspector_dialog",
+      "count": 2
+    },
+    {
+      "module": "ui.reports.resumen_por_cuenta_report",
+      "count": 2
+    },
+    {
+      "module": "ui.reports.detailed_date_report",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.project_dialog",
+      "count": 2
+    },
+    {
+      "module": "ui.reports.gastos_categoria_report",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.gestion_cuentas_maestras_dialog",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.gestion_cuentas_proyecto_dialog",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.gestion_categorias_proyecto_dialog",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.gestion_subcategorias_proyecto_dialog",
+      "count": 2
+    },
+    {
+      "module": "ui.dialogs.gestion_presupuestos_dialog",
+      "count": 2
+    }
+  ],
+  "top_importers": [
+    {
+      "module": "main_window4",
+      "count": 32
+    },
+    {
+      "module": "main_window4 (ZOEC_ADM's conflicted copy 2025-12-23)",
+      "count": 30
+    },
+    {
+      "module": "modern. pages. transactions_page",
+      "count": 9
+    },
+    {
+      "module": "main_window_modern",
+      "count": 6
+    },
+    {
+      "module": "reports. gastos_categoria_report",
+      "count": 3
+    },
+    {
+      "module": "widgets. accounts_window",
+      "count": 3
+    },
+    {
+      "module": "widgets. cashflow_window",
+      "count": 2
+    },
+    {
+      "module": "widgets. sidebar_widget",
+      "count": 2
+    },
+    {
+      "module": "theme_manager_improved",
+      "count": 1
+    },
+    {
+      "module": "dashboards. dashboard_gastos_avanzado_window_firebase",
+      "count": 1
+    },
+    {
+      "module": "dashboards. dashboard_ingresos_vs_gastos_window_firebase",
+      "count": 1
+    },
+    {
+      "module": "reports. detailed_date_report",
+      "count": 1
+    },
+    {
+      "module": "reports. resumen_por_cuenta_report",
+      "count": 1
+    },
+    {
+      "module": "widgets. transactions_widget",
+      "count": 1
+    }
+  ]
+}

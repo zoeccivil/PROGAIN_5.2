@@ -29,6 +29,7 @@ from typing import Optional, List, Dict, Any, Tuple
 from datetime import datetime, date
 from google.cloud.firestore_v1 import FieldFilter
 from google.cloud import firestore # Para las constantes como Query.DESCENDING
+from . cache_manager import cache_manager
 
 try:
     import firebase_admin
@@ -131,10 +132,10 @@ class FirebaseClient:
 
     def get_proyectos(self) -> List[Dict[str, Any]]:
         """
-        Get all projects from Firestore.
+        Get all projects from Firestore (with cache).
 
         Returns:
-            List of project dictionaries with keys at least:
+            List of project dictionaries with keys at least: 
             - id      (string)
             - nombre
             - moneda
@@ -144,34 +145,40 @@ class FirebaseClient:
             logger.error("Firebase not initialized")
             return []
 
-        try:
-            proyectos_ref = self.db.collection("proyectos")
-            docs = proyectos_ref.stream()
+        def fetch():
+            """Función interna para obtener proyectos de Firebase"""
+            try:
+                proyectos_ref = self.db.collection("proyectos")
+                docs = proyectos_ref.stream()
 
-            proyectos: List[Dict[str, Any]] = []
-            for doc in docs:
-                data = doc.to_dict() or {}
+                proyectos: List[Dict[str, Any]] = []
+                for doc in docs: 
+                    data = doc.to_dict() or {}
 
-                # El campo 'id' existe como numérico en la colección raíz;
-                # lo normalizamos a str y, si falta, usamos doc.id.
-                raw_id = data.get("id", doc.id)
-                proyecto_id = str(raw_id)
+                    # El campo 'id' existe como numérico en la colección raíz;
+                    # lo normalizamos a str y, si falta, usamos doc.id. 
+                    raw_id = data.get("id", doc.id)
+                    proyecto_id = str(raw_id)
 
-                proyecto_data = {
-                    "id": proyecto_id,
-                    "nombre": data.get("nombre", f"Proyecto {proyecto_id}"),
-                    "moneda": data.get("moneda", "RD$"),
-                    "cuenta_principal": str(data.get("cuenta_principal", "")),
-                    "raw": data,
-                }
-                proyectos.append(proyecto_data)
+                    proyecto_data = {
+                        "id": proyecto_id,
+                        "nombre": data.get("nombre", f"Proyecto {proyecto_id}"),
+                        "moneda": data.get("moneda", "RD$"),
+                        "cuenta_principal": str(data.get("cuenta_principal", "")),
+                        "raw": data,
+                    }
+                    proyectos.append(proyecto_data)
 
-            logger.info("Retrieved %d projects from Firebase", len(proyectos))
-            return proyectos
+                logger.info("Retrieved %d projects from Firebase", len(proyectos))
+                return proyectos
 
-        except Exception as e:
-            logger.error("Error getting projects: %s", e)
-            return []
+            except Exception as e:
+                logger. error("Error getting projects:  %s", e)
+                return []
+        
+        # ✅ Usar caché
+        from . cache_manager import cache_manager
+        return cache_manager.get_proyectos(fetch)
 
     def create_proyecto(self, nombre: str, descripcion: str = "") -> Optional[str]:
         """
@@ -589,12 +596,12 @@ class FirebaseClient:
         include_deleted: bool = False
     ) -> List[Dict[str, Any]]:
         """
-        Get transactions from project SUBCOLLECTION (the correct location).
+        Get transactions from project SUBCOLLECTION (with cache).
         
         Args:
             proyecto_id: Project ID
             cuenta_id: Optional account ID to filter by
-            include_deleted: Whether to include deleted transactions (default False)
+            include_deleted:  Whether to include deleted transactions (default False)
             
         Returns:
             List of transaction dictionaries (includes transfers for display)
@@ -603,12 +610,35 @@ class FirebaseClient:
             logger.error("Firebase not initialized")
             return []
 
+        # ✅ SOLO usar caché si NO hay filtros específicos
+        if cuenta_id is None and not include_deleted:
+            def fetch():
+                """Función interna para obtener transacciones de Firebase"""
+                return self._fetch_transacciones_raw(proyecto_id, None, False)
+            
+            from . cache_manager import cache_manager
+            return cache_manager.get_transacciones(proyecto_id, fetch)
+        else:
+            # Si hay filtros, NO cachear (es un query específico)
+            return self._fetch_transacciones_raw(proyecto_id, cuenta_id, include_deleted)
+
+
+    def _fetch_transacciones_raw(
+        self,
+        proyecto_id: str,
+        cuenta_id: Optional[str] = None,
+        include_deleted: bool = False
+    ) -> List[Dict[str, Any]]: 
+        """
+        Método interno para obtener transacciones de Firebase (sin caché).
+        Extraído para poder ser usado tanto con como sin caché.
+        """
         try:
             # ✅ PASO 1: Cargar mapa de cuentas ANTES de procesar
             try:
                 cuentas_proyecto = self.get_cuentas_by_proyecto(proyecto_id) or []
                 cuentas_map = {
-                    str(c. get('id')): c.get('nombre', f"Cuenta {c.get('id')}")
+                    str(c.get('id')): c.get('nombre', f"Cuenta {c.get('id')}")
                     for c in cuentas_proyecto
                     if 'id' in c
                 }
@@ -619,7 +649,7 @@ class FirebaseClient:
             
             # CORRECCIÓN: Buscar en la SUBCOLECCIÓN del proyecto
             trans_ref = (
-                self.db.collection('proyectos')
+                self. db.collection('proyectos')
                 .document(str(proyecto_id))
                 .collection('transacciones')
             )
@@ -657,7 +687,7 @@ class FirebaseClient:
                 
                 # ✅ PASO 2: Resolver nombres de cuentas en transferencias
                 if data.get('es_transferencia') or 'Transferencia' in data. get('descripcion', ''):
-                    descripcion_original = data.get('descripcion', '')
+                    descripcion_original = data. get('descripcion', '')
                     
                     # Buscar y reemplazar patrones "Cuenta X" con nombres reales
                     import re
@@ -672,12 +702,12 @@ class FirebaseClient:
                         return cuenta_nombre
                     
                     # Reemplazar todas las ocurrencias de "Cuenta X" con nombres
-                    descripcion_nueva = re.sub(pattern, replace_cuenta, descripcion_original)
+                    descripcion_nueva = re. sub(pattern, replace_cuenta, descripcion_original)
                     
                     # Actualizar solo si cambió
                     if descripcion_nueva != descripcion_original:
                         data['descripcion'] = descripcion_nueva
-                        logger.debug(f"Resolved:  '{descripcion_original}' → '{descripcion_nueva}'")
+                        logger. debug(f"Resolved:  '{descripcion_original}' → '{descripcion_nueva}'")
                 
                 # ✅ Asegurar que adjuntos_paths existe
                 if 'adjuntos_paths' not in data:
@@ -694,7 +724,7 @@ class FirebaseClient:
             con_adjuntos = sum(1 for t in transacciones if t.get('adjuntos_paths'))
             transferencias = sum(1 for t in transacciones if t.get('es_transferencia'))
             
-            logger.info(
+            logger. info(
                 f"Recuperadas {len(transacciones)} transacciones para proyecto {proyecto_id} "
                 f"({con_adjuntos} con adjuntos) "
                 f"({transferencias} transferencias) "
@@ -1464,7 +1494,7 @@ class FirebaseClient:
 
     def get_subcategorias_by_proyecto(self, proyecto_id: str) -> List[Dict[str, Any]]:
         """
-        Get all subcategories for a project.
+        Get all subcategories for a project (with cache).
 
         Estructura actual:
         - Colección raíz 'subcategorias' (global).
@@ -1482,33 +1512,39 @@ class FirebaseClient:
             logger.error("Firebase not initialized")
             return []
 
-        try:
-            sub_ref = self.db.collection("subcategorias")
-            docs = sub_ref.stream()
+        def fetch():
+            """Función interna para obtener subcategorías de Firebase"""
+            try: 
+                sub_ref = self.db.collection("subcategorias")
+                docs = sub_ref.stream()
 
-            subcategorias: List[Dict[str, Any]] = []
-            for doc in docs:
-                data = doc.to_dict() or {}
-                raw_id = data.get("id", doc.id)
-                sub_id = str(raw_id)
+                subcategorias: List[Dict[str, Any]] = []
+                for doc in docs:
+                    data = doc.to_dict() or {}
+                    raw_id = data.get("id", doc. id)
+                    sub_id = str(raw_id)
 
-                sub_data = {
-                    "id": sub_id,
-                    "nombre": data.get("nombre", f"Subcategoría {sub_id}"),
-                    "categoria_id": str(data.get("categoria_id", "")),
-                    "raw": data,
-                }
-                subcategorias.append(sub_data)
+                    sub_data = {
+                        "id": sub_id,
+                        "nombre": data.get("nombre", f"Subcategoría {sub_id}"),
+                        "categoria_id": str(data.get("categoria_id", "")),
+                        "raw": data,
+                    }
+                    subcategorias.append(sub_data)
 
-            logger.info(
-                "Retrieved %d global subcategories from 'subcategorias' collection",
-                len(subcategorias),
-            )
-            return subcategorias
+                logger.info(
+                    "Retrieved %d global subcategories from 'subcategorias' collection",
+                    len(subcategorias),
+                )
+                return subcategorias
 
-        except Exception as e:
-            logger.error("Error getting subcategories from 'subcategorias': %s", e)
-            return []
+            except Exception as e:
+                logger.error("Error getting subcategories from 'subcategorias': %s", e)
+                return []
+        
+        # ✅ Usar caché
+        from .cache_manager import cache_manager
+        return cache_manager.get_subcategorias(fetch)
 
     # ============================================================
     # Cuentas maestras (catálogo global) - usan la colección 'cuentas'
@@ -1619,126 +1655,140 @@ class FirebaseClient:
 
     def get_cuentas_por_proyecto(self, proyecto_id: str) -> List[Dict[str, Any]]:
         """
-        Devuelve las cuentas utilizables para un proyecto.
+        Devuelve las cuentas utilizables para un proyecto (with cache).
 
         Por ahora usamos directamente el catálogo global de cuentas,
-        porque las transacciones tienen:
-          - cuenta_id: número
-          - cuentaNombre: string descriptivo
+        porque las transacciones tienen: 
+        - cuenta_id: número
+        - cuentaNombre: string descriptivo
 
-        Retorna lista de dicts:
-          {
+        Retorna lista de dicts: 
+        {
             "id": int,
             "nombre": str,
             "raw": data_original
-          }
+        }
         """
         if not self.is_initialized():
             logger.error("Firebase not initialized")
             return []
 
-        try:
-            cuentas_maestras = self.get_cuentas_maestras() or []
+        def fetch():
+            """Función interna para obtener cuentas de Firebase"""
+            try:
+                cuentas_maestras = self.get_cuentas_maestras() or []
 
-            cuentas_normalizadas: List[Dict[str, Any]] = []
-            for c in cuentas_maestras:
-                raw_id = c.get("id")
-                try:
-                    cid = int(raw_id)
-                except Exception:
-                    continue
+                cuentas_normalizadas:  List[Dict[str, Any]] = []
+                for c in cuentas_maestras: 
+                    raw_id = c.get("id")
+                    try:
+                        cid = int(raw_id)
+                    except Exception:
+                        continue
 
-                cuentas_normalizadas.append(
-                    {
-                        "id": cid,
-                        "nombre": c.get("nombre", f"Cuenta {cid}"),
-                        "raw": c,
-                    }
+                    cuentas_normalizadas.append(
+                        {
+                            "id": cid,
+                            "nombre": c.get("nombre", f"Cuenta {cid}"),
+                            "raw": c,
+                        }
+                    )
+
+                cuentas_normalizadas.sort(key=lambda x: (x["nombre"] or "").upper())
+
+                logger.info(
+                    "Dashboard cuentas:  using %d master accounts for project %s",
+                    len(cuentas_normalizadas),
+                    proyecto_id,
                 )
+                return cuentas_normalizadas
 
-            cuentas_normalizadas.sort(key=lambda x: (x["nombre"] or "").upper())
+            except Exception as e:
+                logger.error("Error getting accounts for project %s: %s", proyecto_id, e)
+                return []
+        
+        # ✅ Usar caché (por proyecto_id)
+        from . cache_manager import cache_manager
+        return cache_manager.get_cuentas(proyecto_id, fetch)
 
-            logger.info(
-                "Dashboard cuentas: using %d master accounts for project %s",
-                len(cuentas_normalizadas),
-                proyecto_id,
-            )
-            return cuentas_normalizadas
-
-        except Exception as e:
-            logger.error("Error getting accounts for project %s: %s", proyecto_id, e)
-            return []
-
-    def get_cuentas_proyecto(self, proyecto_id: str) -> List[Dict[str, Any]]: 
+    def get_cuentas_proyecto(self, proyecto_id: str) -> List[Dict[str, Any]]:  
         """
-        Devuelve las cuentas asociadas a un proyecto, enlazando con el catálogo
+        Devuelve las cuentas asociadas a un proyecto (with cache), enlazando con el catálogo
         global de cuentas para tener nombre y tipo correctos.
 
-        Lee de:
-          proyectos/{proyecto_id}/cuentas_proyecto/{doc}:
+        Lee de: 
+        proyectos/{proyecto_id}/cuentas_proyecto/{doc}: 
             - cuenta_id      (numérico o string)
             - cuenta_nombre  (string) opcional
             - principal      (bool)   opcional
         """
-        if not self. is_initialized():
-            logger. error("Firebase not initialized")
+        if not self.is_initialized():
+            logger.error("Firebase not initialized")
             return []
 
-        try:
-            proj_ref = self.db. collection("proyectos").document(str(proyecto_id))
-            rel_coll = proj_ref.collection("cuentas_proyecto")
-            docs = list(rel_coll.stream())
+        def fetch():
+            """Función interna para obtener cuentas de proyecto de Firebase"""
+            try:
+                proj_ref = self.db.collection("proyectos").document(str(proyecto_id))
+                rel_coll = proj_ref.collection("cuentas_proyecto")
+                docs = list(rel_coll.stream())
 
-            # Construir mapa de cuentas maestras (soportando int y str)
-            cuentas_maestras = self.get_cuentas_maestras() or []
-            cuentas_map = {}
-            for c in cuentas_maestras:
-                raw_id = c. get("id")
-                if raw_id is None:
-                    continue
+                # Construir mapa de cuentas maestras (soportando int y str)
+                cuentas_maestras = self.get_cuentas_maestras() or []
+                cuentas_map = {}
+                for c in cuentas_maestras:
+                    raw_id = c.get("id")
+                    if raw_id is None:
+                        continue
+                    
+                    # Normalizar a int si es posible, sino usar string
+                    try:
+                        cid = int(raw_id)
+                    except (ValueError, TypeError):
+                        cid = str(raw_id)
+                    
+                    cuentas_map[cid] = c
+
+                result: List[Dict[str, Any]] = []
+                for d in docs:
+                    data = d.to_dict() or {}
+                    cid_raw = data.get("cuenta_id")
+                    if cid_raw is None:
+                        continue
+                    
+                    # Normalizar a int si es posible, sino usar string
+                    try: 
+                        cid = int(cid_raw)
+                    except (ValueError, TypeError):
+                        cid = str(cid_raw)
+
+                    principal = bool(data.get("principal", False))
+                    cat = cuentas_map.get(cid, {})
+                    nombre = data.get("cuenta_nombre") or cat.get("nombre") or f"Cuenta {cid}"
+
+                    result.append(
+                        {
+                            "cuenta_id": cid,
+                            "nombre": nombre,
+                            "principal": principal,
+                            "raw": data,
+                        }
+                    )
+
+                result.sort(key=lambda x: (not x["principal"], (x["nombre"] or "").upper()))
                 
-                # Normalizar a int si es posible, sino usar string
-                try:
-                    cid = int(raw_id)
-                except (ValueError, TypeError):
-                    cid = str(raw_id)
-                
-                cuentas_map[cid] = c
+                logger.info("Cargadas %d cuentas vinculadas al proyecto %s", len(result), proyecto_id)
+                return result
 
-            result:  List[Dict[str, Any]] = []
-            for d in docs:
-                data = d.to_dict() or {}
-                cid_raw = data.get("cuenta_id")
-                if cid_raw is None:
-                    continue
-                
-                # Normalizar a int si es posible, sino usar string
-                try:
-                    cid = int(cid_raw)
-                except (ValueError, TypeError):
-                    cid = str(cid_raw)
-
-                principal = bool(data.get("principal", False))
-                cat = cuentas_map.get(cid, {})
-                nombre = data.get("cuenta_nombre") or cat.get("nombre") or f"Cuenta {cid}"
-
-                result.append(
-                    {
-                        "cuenta_id": cid,
-                        "nombre": nombre,
-                        "principal": principal,
-                        "raw": data,
-                    }
-                )
-
-            result.sort(key=lambda x: (not x["principal"], (x["nombre"] or "").upper()))
-            
-            logger.info("Cargadas %d cuentas vinculadas al proyecto %s", len(result), proyecto_id)
-            return result
-
-        except Exception as e:
-            logger.error("Error getting project accounts for project %s: %s", proyecto_id, e)
-            return []
+            except Exception as e: 
+                logger.error("Error getting project accounts for project %s: %s", proyecto_id, e)
+                return []
+        
+        # ✅ Usar caché (con clave diferente para no colisionar con get_cuentas_por_proyecto)
+        from .cache_manager import cache_manager
+        # Usamos una clave única combinando proyecto_id con sufijo
+        cache_key = f"{proyecto_id}_proyecto"
+        return cache_manager.get_cuentas(cache_key, fetch)
 
     def save_cuentas_proyecto(
         self,
@@ -1873,20 +1923,22 @@ class FirebaseClient:
     # ============================================================
 
     def get_categorias_maestras(self) -> List[Dict[str, Any]]:
-            """
-            Devuelve todas las categorías maestras desde la colección global 'categorias'. 
-            Cada item: {id, nombre, raw}
-            """
-            if not self.is_initialized():
-                logger.error("Firebase not initialized")
-                return []
+        """
+        Devuelve todas las categorías maestras desde la colección global 'categorias' (with cache).
+        Cada item:  {id, nombre, raw}
+        """
+        if not self. is_initialized():
+            logger.error("Firebase not initialized")
+            return []
 
+        def fetch():
+            """Función interna para obtener categorías de Firebase"""
             try:
                 categorias_ref = self.db.collection("categorias")
                 docs = categorias_ref.stream()
 
                 categorias: List[Dict[str, Any]] = []
-                for doc in docs:
+                for doc in docs: 
                     data = doc.to_dict() or {}
                     
                     # ✅ PRIORIZAR EL CAMPO "id" (int) SOBRE doc.id (string)
@@ -1899,15 +1951,15 @@ class FirebaseClient:
                     else:
                         cat_id = doc.id  # Fallback al document ID
                     
-                    categorias. append(
+                    categorias.append(
                         {
                             "id": cat_id,  # ✅ Ahora es int si tiene campo "id"
-                            "nombre": data.get("nombre", f"Categoría {cat_id}"),
-                            "raw":  data,
+                            "nombre":  data.get("nombre", f"Categoría {cat_id}"),
+                            "raw": data,
                         }
                     )
 
-                categorias.sort(key=lambda c: (c. get("nombre") or "").upper())
+                categorias.sort(key=lambda c: (c.get("nombre") or "").upper())
                 
                 logger.info(f"Retrieved {len(categorias)} global categories from 'categorias' collection")
                 return categorias
@@ -1915,6 +1967,10 @@ class FirebaseClient:
             except Exception as e:
                 logger.error("Error getting master categories: %s", e)
                 return []
+        
+        # ✅ Usar caché
+        from .cache_manager import cache_manager
+        return cache_manager.get_categorias(fetch)
 
     def create_categoria_maestra(self, nombre: str) -> Optional[str]:
         """Crea una categoría maestra en la colección 'categorias'."""
@@ -1998,8 +2054,13 @@ class FirebaseClient:
 
     def get_subcategorias_maestras_by_categoria(
         self, categoria_id: str
-    ) -> List[Dict[str, Any]]:
-        """Devuelve las subcategorías maestras de una categoría dada."""
+    ) -> List[Dict[str, Any]]: 
+        """
+        Devuelve las subcategorías maestras de una categoría dada.
+        
+        ⚠️ NOTA: Este método NO usa caché porque depende de un parámetro específico. 
+        Si quieres cachearlo, necesitarías un caché por categoria_id.
+        """
         if not self.is_initialized():
             logger.error("Firebase not initialized")
             return []
@@ -2012,7 +2073,7 @@ class FirebaseClient:
             try:
                 cat_id_num = int(categoria_id)
                 query = sub_ref.where("categoria_id", "==", cat_id_num)
-            except ValueError:
+            except ValueError: 
                 # Si no es convertible a int, usamos string (por si acaso en algún doc es string)
                 query = sub_ref.where("categoria_id", "==", categoria_id)
 
@@ -2026,7 +2087,7 @@ class FirebaseClient:
                 subcategorias.append(
                     {
                         "id": sub_id,
-                        "nombre": data.get("nombre", f"Subcategoría {sub_id}"),
+                        "nombre":  data.get("nombre", f"Subcategoría {sub_id}"),
                         # Normalizamos categoria_id siempre a str para la UI
                         "categoria_id": str(data.get("categoria_id", "")),
                         "raw": data,
@@ -2159,88 +2220,96 @@ class FirebaseClient:
     # Categorías por proyecto (relación proyecto - categorías maestras)
     # ============================================================
 
-    def get_categorias_por_proyecto(self, proyecto_id:  str) -> List[Dict[str, Any]]:  
+    def get_categorias_por_proyecto(self, proyecto_id: str) -> List[Dict[str, Any]]:  
         """
         Devuelve las categorías asociadas a un proyecto CON sus nombres correctos.
         
         ✅ CORREGIDO: Filtra categorías huérfanas (sin registro en catálogo maestro).
+        ✅ CON CACHÉ. 
         
         Lee de:   
             proyectos/{proyecto_id}/categorias_proyecto/{doc_id}
         
-        Resuelve nombres desde 'categorias' maestras.
+        Resuelve nombres desde 'categorias' maestras. 
         """
         if not self.is_initialized():
             logger.error("Firebase not initialized")
             return []
 
-        try:
-            proj_ref = self.db.collection("proyectos").document(proyecto_id)
-            cat_coll = proj_ref.collection("categorias_proyecto")
-            docs = cat_coll.stream()
+        def fetch():
+            """Función interna para obtener categorías de proyecto de Firebase"""
+            try:
+                proj_ref = self.db.collection("proyectos").document(proyecto_id)
+                cat_coll = proj_ref. collection("categorias_proyecto")
+                docs = cat_coll.stream()
 
-            # ✅ OBTENER CATÁLOGO DE MAESTRAS CON IDS NORMALIZADOS
-            maestras_raw = self.get_categorias_maestras()
-            
-            # ✅ CREAR MAPA CON AMBOS FORMATOS (INT Y STRING)
-            maestras = {}
-            for c in maestras_raw: 
-                cid = c["id"]
-                maestras[cid] = c  # Guardar con tipo original (int)
-                maestras[str(cid)] = c  # Guardar también como string
+                # ✅ OBTENER CATÁLOGO DE MAESTRAS CON IDS NORMALIZADOS
+                maestras_raw = self.get_categorias_maestras()
+                
+                # ✅ CREAR MAPA CON AMBOS FORMATOS (INT Y STRING)
+                maestras = {}
+                for c in maestras_raw:  
+                    cid = c["id"]
+                    maestras[cid] = c  # Guardar con tipo original (int)
+                    maestras[str(cid)] = c  # Guardar también como string
 
-            result:   List[Dict[str, Any]] = []
-            categorias_huerfanas = []  # ✅ Para logging
-            
-            for doc in docs: 
-                data = doc.to_dict() or {}
+                result: List[Dict[str, Any]] = []
+                categorias_huerfanas = []  # ✅ Para logging
                 
-                # Obtener ID desde el documento
-                cat_master_id_raw = (
-                    data.get("categoria_maestra_id") or 
-                    data.get("categoria_id") or 
-                    doc.id
-                )
-                
-                # ✅ NORMALIZAR A STRING PARA BÚSQUEDA
-                cat_master_id_str = str(cat_master_id_raw)
-                
-                # ✅ BUSCAR EN EL MAPA
-                master = maestras.get(cat_master_id_str, {})
-                
-                # ✅ CRÍTICO: SOLO AGREGAR SI TIENE NOMBRE REAL
-                if master and master.get("nombre"):
-                    nombre = master["nombre"]
+                for doc in docs:  
+                    data = doc.to_dict() or {}
                     
-                    result.append({
-                        "id": cat_master_id_str,
-                        "nombre": nombre,
-                        "activa": bool(data.get("activa", True)),
-                        "raw": data,
-                    })
-                else:
-                    # ✅ Categoría huérfana (no existe en catálogo maestro)
-                    categorias_huerfanas. append(cat_master_id_str)
-                    logger.warning(
-                        f"⚠️  Categoría huérfana detectada: ID {cat_master_id_str} "
-                        f"(existe en proyecto {proyecto_id} pero NO en catálogo maestro)"
+                    # Obtener ID desde el documento
+                    cat_master_id_raw = (
+                        data.get("categoria_maestra_id") or 
+                        data.get("categoria_id") or 
+                        doc.id
                     )
-            
-            # ✅ LOG RESUMEN
-            if categorias_huerfanas: 
-                logger.warning(
-                    f"❌ {len(categorias_huerfanas)} categorías huérfanas filtradas:  {categorias_huerfanas}"
+                    
+                    # ✅ NORMALIZAR A STRING PARA BÚSQUEDA
+                    cat_master_id_str = str(cat_master_id_raw)
+                    
+                    # ✅ BUSCAR EN EL MAPA
+                    master = maestras.get(cat_master_id_str, {})
+                    
+                    # ✅ CRÍTICO:  SOLO AGREGAR SI TIENE NOMBRE REAL
+                    if master and master.get("nombre"):
+                        nombre = master["nombre"]
+                        
+                        result.append({
+                            "id": cat_master_id_str,
+                            "nombre": nombre,
+                            "activa": bool(data.get("activa", True)),
+                            "raw": data,
+                        })
+                    else:
+                        # ✅ Categoría huérfana (no existe en catálogo maestro)
+                        categorias_huerfanas.append(cat_master_id_str)
+                        logger.warning(
+                            f"⚠️ Categoría huérfana detectada: ID {cat_master_id_str} "
+                            f"(existe en proyecto {proyecto_id} pero NO en catálogo maestro)"
+                        )
+                
+                # ✅ LOG RESUMEN
+                if categorias_huerfanas:  
+                    logger.warning(
+                        f"❌ {len(categorias_huerfanas)} categorías huérfanas filtradas:  {categorias_huerfanas}"
+                    )
+                
+                logger.info(
+                    f"✅ Loaded {len(result)} valid categories for project {proyecto_id} "
+                    f"({len(categorias_huerfanas)} orphans filtered)"
                 )
-            
-            logger.info(
-                f"✅ Loaded {len(result)} valid categories for project {proyecto_id} "
-                f"({len(categorias_huerfanas)} orphans filtered)"
-            )
-            return result
+                return result
 
-        except Exception as e:
-            logger.error(f"Error getting project categories for project {proyecto_id}: {e}")
-            return []
+            except Exception as e: 
+                logger.error(f"Error getting project categories for project {proyecto_id}: {e}")
+                return []
+        
+        # ✅ Usar caché específico para categorías por proyecto
+        # NOTA: No usamos cache_manager porque este método tiene lógica compleja de validación. 
+        # Si quieres cachearlo, necesitas agregar un método en cache_manager para categorías por proyecto
+        return fetch()  # Por ahora sin caché debido a la complejidad
 
     def asignar_categorias_a_proyecto(
         self,
@@ -2456,7 +2525,12 @@ class FirebaseClient:
         proyecto_id: str,
         fecha_inicio: date,
         fecha_fin: date,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[Dict[str, Any]]: 
+        """
+        Obtener presupuestos de un proyecto en un período específico.
+        
+        ⚠️ NO USA CACHÉ porque depende de fecha_inicio y fecha_fin (parámetros dinámicos).
+        """
         if not self.is_initialized():
             logger.error("Firebase not initialized")
             return []
@@ -2508,6 +2582,11 @@ class FirebaseClient:
         fecha_inicio: date,
         fecha_fin: date,
     ) -> float:
+        """
+        Calcular gasto total de una categoría en un período. 
+        
+        ⚠️ NO USA CACHÉ porque es un cálculo dinámico basado en múltiples parámetros.
+        """
         if not self.is_initialized():
             logger.error("Firebase not initialized")
             return 0.0
@@ -2515,8 +2594,8 @@ class FirebaseClient:
         try:
             from datetime import datetime
 
-            ini_dt = datetime(fecha_inicio.year, fecha_inicio.month, fecha_inicio.day)
-            fin_dt = datetime(fecha_fin.year, fecha_fin.month, fecha_fin.day, 23, 59, 59)
+            ini_dt = datetime(fecha_inicio. year, fecha_inicio.month, fecha_inicio.day)
+            fin_dt = datetime(fecha_fin.year, fecha_fin. month, fecha_fin.day, 23, 59, 59)
 
             trans_ref = (
                 self.db.collection("proyectos")
@@ -2526,14 +2605,14 @@ class FirebaseClient:
 
             query = trans_ref
             query = query.where(filter=FieldFilter("tipo", "==", TIPO_GASTO))
-            query = query.where(filter=FieldFilter("categoria_id", "==", str(categoria_id)))
+            query = query. where(filter=FieldFilter("categoria_id", "==", str(categoria_id)))
             query = query.where(filter=FieldFilter("fecha", ">=", ini_dt))
             query = query.where(filter=FieldFilter("fecha", "<=", fin_dt))
 
             docs = query.stream()
             total = 0.0
             for doc in docs:
-                data = doc.to_dict() or {}
+                data = doc. to_dict() or {}
                 
                 # ✅ EXCLUIR TRANSFERENCIAS
                 if data.get("es_transferencia") == True:
@@ -2545,7 +2624,7 @@ class FirebaseClient:
             return total
 
         except Exception as e:
-            logger.error(
+            logger. error(
                 "Error calculating expenses for category %s in project %s: %s",
                 categoria_id,
                 proyecto_id,
@@ -4577,91 +4656,147 @@ class FirebaseClient:
         self, proyecto_id: str
     ) -> list[dict[str, Any]]:
         """
-        Devuelve las subcategorías activas para un proyecto.
+        Devuelve las subcategorías activas para un proyecto con nombres resueltos.
 
         Lee de:
-          proyectos/{proyecto_id}/subcategorias_proyecto/{doc}
+        proyectos/{proyecto_id}/subcategorias_proyecto/{doc}
 
         Estructura real (según Firestore):
-          - subcategoria_maestra_id : str
-          - categoria_id            : str (id de categoría maestra)
-          - activa                  : bool
+        - subcategoria_maestra_id : str
+        - categoria_id            : str (id de categoría maestra)
+        - activa                  : bool
+
+        ✅ CORREGIDO: Resuelve los nombres desde subcategorias_maestras
 
         Retorna lista de dicts normalizados:
-          {
+        {
             "id": int,                # id de subcategoría maestra
+            "nombre": str,            # ✅ NOMBRE resuelto desde maestras
             "categoria_id": int,      # id de categoría maestra
             "activa": bool,
             "raw": data_original
-          }
+        }
         """
         if not self.is_initialized():
             logger.error("Firebase not initialized")
             return []
 
-        try:
-            proj_ref = self.db.collection("proyectos").document(str(proyecto_id))
-            coll = proj_ref.collection("subcategorias_proyecto")
-            docs = list(coll.stream())
+        def fetch():
+            """Función interna para obtener subcategorías de proyecto de Firebase"""
+            try:
+                proj_ref = self.db.collection("proyectos").document(str(proyecto_id))
+                coll = proj_ref.collection("subcategorias_proyecto")
+                docs = list(coll.stream())
 
-            result: list[dict[str, Any]] = []
-            for d in docs:
-                data = d.to_dict() or {}
+                result: list[dict[str, Any]] = []
+                for d in docs:
+                    data = d.to_dict() or {}
 
-                raw_sub_id = data.get("subcategoria_maestra_id")
-                raw_cat_id = data.get("categoria_id")
-                if raw_sub_id is None:
-                    continue
-
-                try:
-                    sid = int(raw_sub_id)
-                except Exception:
-                    try:
-                        sid = int(str(raw_sub_id))
-                    except Exception:
-                        logger.warning(
-                            "Invalid subcategoria_maestra_id=%r en subcategorias_proyecto/%s",
-                            raw_sub_id,
-                            d.id,
-                        )
+                    raw_sub_id = data.get("subcategoria_maestra_id")
+                    raw_cat_id = data.get("categoria_id")
+                    if raw_sub_id is None:
                         continue
 
-                cat_id_int: Optional[int] = None
-                if raw_cat_id is not None:
                     try:
-                        cat_id_int = int(raw_cat_id)
+                        sid = int(raw_sub_id)
                     except Exception:
                         try:
-                            cat_id_int = int(str(raw_cat_id))
+                            sid = int(str(raw_sub_id))
                         except Exception:
-                            cat_id_int = None
+                            logger.warning(
+                                "Invalid subcategoria_maestra_id=%r en subcategorias_proyecto/%s",
+                                raw_sub_id,
+                                d.id,
+                            )
+                            continue
 
-                activa = bool(data.get("activa", True))
+                    cat_id_int: Optional[int] = None
+                    if raw_cat_id is not None:
+                        try:
+                            cat_id_int = int(raw_cat_id)
+                        except Exception:
+                            try:
+                                cat_id_int = int(str(raw_cat_id))
+                            except Exception:
+                                cat_id_int = None
 
-                result.append(
-                    {
-                        "id": sid,
-                        "categoria_id": cat_id_int,
-                        "activa": activa,
-                        "raw": data,
-                    }
+                    activa = bool(data.get("activa", True))
+
+                    result.append(
+                        {
+                            "id": sid,
+                            "categoria_id": cat_id_int,
+                            "activa": activa,
+                            "raw": data,
+                            # ✅ nombre se agregará después
+                        }
+                    )
+
+                logger.info(
+                    "Proyecto %s: loaded %d subcategorias_proyecto (activas=%d)",
+                    proyecto_id,
+                    len(result),
+                    sum(1 for s in result if s["activa"]),
                 )
+                
+                # ===== ✅ RESOLVER NOMBRES DESDE MAESTRAS =====
+                if result:
+                    try:
+                        # Obtener subcategorías maestras
+                        subs_maestras = self.get_subcategorias_maestras()
+                        
+                        if subs_maestras:
+                            # Crear mapa: ID → Nombre
+                            subs_map = {}
+                            for sub in subs_maestras:
+                                sub_id = sub.get('id')
+                                sub_nombre = sub.get('nombre')
+                                
+                                if sub_id is not None:
+                                    try:
+                                        subs_map[int(sub_id)] = sub_nombre or f"Subcategoría {sub_id}"
+                                    except Exception:
+                                        logger.warning(f"No se pudo convertir ID de subcategoría: {sub_id}")
+                            
+                            # Asignar nombres a las subcategorías del proyecto
+                            nombres_resueltos = 0
+                            for sub in result:
+                                sub_id = sub.get('id')
+                                if sub_id in subs_map:
+                                    sub['nombre'] = subs_map[sub_id]
+                                    nombres_resueltos += 1
+                                else:
+                                    sub['nombre'] = f"Subcategoría {sub_id}"
+                                    logger.warning(f"No se encontró nombre para subcategoría ID {sub_id}")
+                            
+                            logger.info(f"✅ Nombres resueltos: {nombres_resueltos}/{len(result)} subcategorías")
+                        else:
+                            logger.warning("⚠️ No se pudieron cargar subcategorías maestras, usando nombres por defecto")
+                            for sub in result:
+                                sub['nombre'] = f"Subcategoría {sub.get('id')}"
+                    
+                    except Exception as e:
+                        logger.error(f"❌ Error resolviendo nombres de subcategorías: {e}")
+                        # Fallback: asignar nombres por defecto
+                        for sub in result:
+                            if 'nombre' not in sub:
+                                sub['nombre'] = f"Subcategoría {sub.get('id')}"
+                
+                return result
 
-            logger.info(
-                "Proyecto %s: loaded %d subcategorias_proyecto (activas=%d)",
-                proyecto_id,
-                len(result),
-                sum(1 for s in result if s["activa"]),
-            )
-            return result
-
-        except Exception as e:
-            logger.error(
-                "Error getting project subcategories for project %s: %s",
-                proyecto_id,
-                e,
-            )
-            return []        
+            except Exception as e:
+                logger.error(
+                    "Error getting project subcategories for project %s: %s",
+                    proyecto_id,
+                    e,
+                )
+                return []
+        
+        # ✅ Usar caché con clave específica para subcategorías por proyecto
+        from .cache_manager import cache_manager
+        cache_key = f"{proyecto_id}_subcats"
+        
+        return cache_manager.get_cuentas(cache_key, fetch)
     # ============================================================
     # Categorías maestras (catálogo global)
     # ============================================================

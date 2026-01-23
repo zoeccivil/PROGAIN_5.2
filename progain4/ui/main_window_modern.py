@@ -37,6 +37,7 @@ try:
 except ImportError:
     AccountsWindow = None
     print("⚠️ AccountsWindow no encontrado - usando placeholder")
+from progain4.ui.modern. pages.transactions_page import TransactionsPage
 
 
 class MainWindowModern(QMainWindow):
@@ -357,17 +358,27 @@ class MainWindowModern(QMainWindow):
     def setup_connections(self):
         """Conectar signals y slots"""
         
-        # Sidebar → Navegación
+        # === SIDEBAR SIGNALS ===
         if hasattr(self.sidebar, 'navigation_changed'):
             self.sidebar.navigation_changed.connect(self.on_navigation_changed)
         
-        # Header → Cambio de empresa
-        if hasattr(self.header, 'company_changed'):
-            self.header.company_changed.connect(self.on_company_changed)
+        # === HEADER SIGNALS ===
         
-        # Header → Botón Registrar
-        if hasattr(self.header, 'register_clicked'):
-            self.header.register_clicked.connect(self.on_register_clicked)
+        # Cambio de proyecto
+        if hasattr(self.header, 'project_changed'):
+            self.header.project_changed.connect(self.on_project_changed)
+        
+        # Búsqueda
+        if hasattr(self.header, 'search_triggered'):
+            self.header.search_triggered.connect(self.on_search_triggered)
+        
+        # Notificaciones
+        if hasattr(self.header, 'notifications_clicked'):
+            self.header.notifications_clicked.connect(self.on_notifications_clicked)
+        
+        # Usuario
+        if hasattr(self.header, 'user_clicked'):
+            self.header.user_clicked.connect(self.on_user_clicked)
         
         print("✅ Señales y slots conectados")
     
@@ -387,6 +398,43 @@ class MainWindowModern(QMainWindow):
         print(f"📍 Navegación solicitada: {page_name}")
         self.navigate_to_page(page_name)
     
+    def on_project_changed(self, proyecto_id: str, proyecto_nombre: str):
+        """Callback cuando cambia el proyecto desde el header"""
+        print(f"🏗️ Proyecto cambiado: {proyecto_nombre} ({proyecto_id})")
+        
+        # Actualizar proyecto activo
+        self.proyecto_id = proyecto_id
+        self.proyecto_nombre = proyecto_nombre
+        
+        # TODO: Recargar datos de las páginas según el nuevo proyecto
+        # Si tienes una página de transacciones:
+        # if hasattr(self, 'page_trans'):
+        #     self.page_trans.on_project_changed(proyecto_id, proyecto_nombre)
+        
+        self.statusbar.showMessage(f"📁 Proyecto activo: {proyecto_nombre}", 3000)
+
+    def on_search_triggered(self, search_text: str):
+        """Callback cuando se realiza una búsqueda"""
+        print(f"🔍 Búsqueda: {search_text}")
+        
+        # TODO: Implementar lógica de búsqueda global
+        self.statusbar.showMessage(f"🔍 Buscando: {search_text}", 2000)
+
+    def on_notifications_clicked(self):
+        """Callback cuando se hace clic en notificaciones"""
+        print("🔔 Notificaciones")
+        
+        # TODO: Abrir panel de notificaciones
+        QMessageBox.information(self, "Notificaciones", "Panel de notificaciones (por implementar)")
+
+    def on_user_clicked(self):
+        """Callback cuando se hace clic en usuario"""
+        print("👤 Perfil de usuario")
+        
+        # TODO: Abrir menú de usuario o perfil
+        QMessageBox.information(self, "Usuario", "Perfil de usuario (por implementar)")
+
+
     def navigate_to_page(self, page_name: str):
         """
         Navega a una página específica del stack.
@@ -429,15 +477,7 @@ class MainWindowModern(QMainWindow):
         
         self.statusbar.showMessage(f"🏢 Filtrando por: {company_name}", 2000)
     
-    def on_register_clicked(self):
-        """Callback cuando se hace clic en el botón Registrar"""
-        print("➕ Abriendo diálogo de nueva transacción")
-        
-        # TODO: Abrir diálogo de nueva transacción
-        # Si ya existe en main_window4.py, migrar aquí
-        
-        self.statusbar.showMessage("➕ Nueva transacción (diálogo por implementar)", 2000)
-    
+
     def on_new_project(self):
         """Acción: Nuevo Proyecto"""
         print("📁 Nuevo Proyecto")

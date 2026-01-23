@@ -122,6 +122,10 @@ COLORS = {
     'purple_700': '#7e22ce',
     'purple_800': '#6b21a8',
     'purple_900': '#581c87',
+    'purple_600': '#9333ea',
+    'pink_600': '#db2777',
+    'emerald_600': '#059669',
+
     
     # Básicos
     'white': '#ffffff',

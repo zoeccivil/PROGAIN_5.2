@@ -272,39 +272,77 @@ class ModernTransactionDialog(QDialog):
         else:
             self.cuentas = cuentas
     
-    def _load_categories(self, categorias:  Optional[List[Dict[str, Any]]], 
+    def _load_categories(self, categorias: Optional[List[Dict[str, Any]]], 
                         subcategorias: Optional[List[Dict[str, Any]]]):
-        """Load categories and subcategories from project"""
+        """
+        Load categories and subcategories from project.
+        
+        ✅ CORREGIDO: Usa métodos correctos de Firebase y tiene fallback a maestras.
+        """
         self.categorias = []
         self.subcategorias = []
         
         try:
+            # ===== 1️⃣ CARGAR CATEGORÍAS =====
             if categorias is None:
+                # ✅ Obtener categorías activas del proyecto
                 categorias_proyecto = self.firebase_client.get_categorias_por_proyecto(self.proyecto_id)
-                logger.info(f"📋 Loaded {len(categorias_proyecto)} project categories")
-                self.categorias = categorias_proyecto
+                logger.info(f"📋 Categorías del proyecto obtenidas: {len(categorias_proyecto)}")
+                
+                if categorias_proyecto:
+                    # Ya vienen con nombres resueltos desde firebase_client
+                    self.categorias = categorias_proyecto
+                    
+                    for cat in self.categorias[:5]:
+                        logger.debug(f"  - {cat.get('nombre')} (ID: {cat.get('id')})")
             else:
-                self. categorias = categorias
+                self.categorias = categorias
             
-            if subcategorias is None: 
-                subcategorias_proyecto = self.firebase_client.get_subcategorias_por_proyecto(self.proyecto_id)
-                logger.info(f"📋 Loaded {len(subcategorias_proyecto)} project subcategories")
-                self.subcategorias = subcategorias_proyecto
+            # ===== 2️⃣ CARGAR SUBCATEGORÍAS =====
+            if subcategorias is None:
+                # ✅ CORREGIDO: Usar método correcto (con "activas")
+                subcategorias_proyecto = self.firebase_client.get_subcategorias_activas_por_proyecto(self.proyecto_id)
+                logger.info(f"📋 Subcategorías del proyecto obtenidas: {len(subcategorias_proyecto)}")
+                
+                if subcategorias_proyecto:
+                    # Ya vienen con nombres resueltos desde firebase_client
+                    self.subcategorias = subcategorias_proyecto
+                    
+                    for sub in self.subcategorias[:5]:
+                        logger.debug(f"  - {sub.get('nombre')} (cat: {sub.get('categoria_id')})")
             else:
                 self.subcategorias = subcategorias
                 
-        except Exception as e: 
-            logger.error(f"❌ Error loading categories: {e}")
+        except Exception as e:
+            logger.error(f"❌ Error cargando categorías del proyecto: {e}", exc_info=True)
         
+        # ===== 3️⃣ FALLBACK: Cargar catálogo global si no hay asignadas =====
         if not self.categorias:
-            logger.warning("⚠️ No project categories, loading global catalog as fallback")
+            logger.warning("⚠️ No hay categorías asignadas, cargando catálogo global como fallback")
+            
             try:
+                # ✅ Usar método que ya tiene el mapeo correcto
                 self.categorias = self.firebase_client.get_categorias_maestras() or []
                 self.subcategorias = self.firebase_client.get_subcategorias_maestras() or []
-                logger.info(f"Fallback:  {len(self.categorias)} categories, {len(self.subcategorias)} subcategories")
+                
+                logger.info(f"Fallback: {len(self.categorias)} categorías, {len(self.subcategorias)} subcategorías")
+                
             except Exception as e:
-                logger.error(f"❌ Error loading global catalog: {e}")
+                logger.error(f"❌ Error en fallback de catálogo global: {e}")
         
+        # ===== 4️⃣ LOG RESUMEN =====
+        logger.info("="*50)
+        logger.info(f"✅ RESUMEN DE DATOS CARGADOS:")
+        logger.info(f"   Categorías:     {len(self.categorias)}")
+        logger.info(f"   Subcategorías:  {len(self.subcategorias)}")
+        logger.info("="*50)
+        
+        if self.categorias:
+            logger.info("📂 Primeras categorías:")
+            for cat in self.categorias[:3]:
+                logger.info(f"   • {cat.get('nombre', 'Sin nombre')} (ID: {cat.get('id')})")
+        
+        # ===== 5️⃣ VALIDACIÓN =====
         if not self.categorias:
             QMessageBox.warning(
                 self,
@@ -313,8 +351,6 @@ class ModernTransactionDialog(QDialog):
                 "Puede asignar categorías al proyecto desde:\n"
                 "Editar → Gestionar categorías del proyecto"
             )
-        
-        logger.info(f"✅ Categories loaded: {len(self.categorias)} categories, {len(self.subcategorias)} subcategories")
     
     def _init_ui(self):
         """Initialize the refined 2-column UI"""
@@ -480,7 +516,7 @@ class ModernTransactionDialog(QDialog):
         return card
     
     def _create_category_card(self) -> QWidget:
-        """Create refined category card"""
+        """Create refined category card with equal width comboboxes"""
         card = self._create_refined_card(f"📁 Categorización ({len(self.categorias)})")
         form = QFormLayout()
         form.setSpacing(SPACING['sm'])
@@ -488,8 +524,64 @@ class ModernTransactionDialog(QDialog):
         form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         form.setHorizontalSpacing(SPACING['md'])
         
-        # Category
+        # === CATEGORY ===
         self.categoria_combo = QComboBox()
+        
+        # ✅ SOBRESCRIBIR ESTILO para este ComboBox específico
+        self.categoria_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {COLORS['white']};
+                border: 1px solid {COLORS['slate_300']};
+                border-radius: 6px;
+                padding: 8px 12px;
+                padding-right: 30px;
+                font-size: 14px;
+                color: {COLORS['slate_800']};
+                min-width: 320px;  /* ✅ ANCHO MÍNIMO */
+                max-width: 320px;  /* ✅ ANCHO MÁXIMO */
+            }}
+            QComboBox:hover {{
+                border-color: {COLORS['blue_500']};
+                background-color: {COLORS['slate_50']};
+            }}
+            QComboBox:focus {{
+                border-color: {COLORS['blue_600']};
+                border-width: 2px;
+            }}
+            QComboBox::drop-down {{
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 30px;
+                border-left: none;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid {COLORS['slate_600']};
+                margin-right: 8px;
+            }}
+            QComboBox::down-arrow:hover {{
+                border-top-color: {COLORS['blue_600']};
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {COLORS['white']};
+                border: 1px solid {COLORS['slate_300']};
+                border-radius: 6px;
+                selection-background-color: {COLORS['blue_100']};
+                selection-color: {COLORS['slate_900']};
+                padding: 4px;
+                outline: none;
+            }}
+            QComboBox QAbstractItemView::item {{
+                padding: 8px 12px;
+                border-radius: 4px;
+            }}
+            QComboBox QAbstractItemView::item:hover {{
+                background-color: {COLORS['blue_50']};
+            }}
+        """)
+        
         self.categoria_combo.setMinimumHeight(36)
         
         if self.categorias:
@@ -505,15 +597,96 @@ class ModernTransactionDialog(QDialog):
         self.categoria_combo.currentIndexChanged.connect(self._on_category_changed)
         form.addRow(self._create_compact_label("Categoría:"), self.categoria_combo)
         
-        # Subcategory
+        # === SUBCATEGORY ===
         self.subcategoria_combo = QComboBox()
+        
+        # ✅ MISMO ESTILO para Subcategoría
+        self.subcategoria_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {COLORS['white']};
+                border: 1px solid {COLORS['slate_300']};
+                border-radius: 6px;
+                padding: 8px 12px;
+                padding-right: 30px;
+                font-size: 14px;
+                color: {COLORS['slate_800']};
+                min-width: 320px;  /* ✅ MISMO ANCHO */
+                max-width: 320px;  /* ✅ MISMO ANCHO */
+            }}
+            QComboBox:hover {{
+                border-color: {COLORS['blue_500']};
+                background-color: {COLORS['slate_50']};
+            }}
+            QComboBox:focus {{
+                border-color: {COLORS['blue_600']};
+                border-width: 2px;
+            }}
+            QComboBox::drop-down {{
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 30px;
+                border-left: none;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid {COLORS['slate_600']};
+                margin-right: 8px;
+            }}
+            QComboBox::down-arrow:hover {{
+                border-top-color: {COLORS['blue_600']};
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {COLORS['white']};
+                border: 1px solid {COLORS['slate_300']};
+                border-radius: 6px;
+                selection-background-color: {COLORS['blue_100']};
+                selection-color: {COLORS['slate_900']};
+                padding: 4px;
+                outline: none;
+            }}
+            QComboBox QAbstractItemView::item {{
+                padding: 8px 12px;
+                border-radius: 4px;
+            }}
+            QComboBox QAbstractItemView::item:hover {{
+                background-color: {COLORS['blue_50']};
+            }}
+        """)
+        
         self.subcategoria_combo.setMinimumHeight(36)
         self.subcategoria_combo.addItem("(Ninguna)", None)
         form.addRow(self._create_compact_label("Subcategoría:"), self.subcategoria_combo)
         
         card.layout().addLayout(form)
         return card
-    
+
+    def _force_equal_category_combo_widths(self):
+        """Force subcategory combo to have the same width as category combo."""
+        if not hasattr(self, "categoria_combo") or not hasattr(self, "subcategoria_combo"):
+            return
+
+        # ancho objetivo: el ancho real del combo de categoría
+        w = self.categoria_combo.width()
+        if w <= 0:
+            w = self.categoria_combo.sizeHint().width()
+
+        # fuerza mínimo igual al ancho objetivo (así no se encoge)
+        self.subcategoria_combo.setMinimumWidth(w)
+        self.subcategoria_combo.updateGeometry()
+
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._force_equal_category_combo_widths()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._force_equal_category_combo_widths()
+
+
+
     def _create_description_card(self) -> QWidget:
         """Create refined description card"""
         card = self._create_refined_card("📝 Descripción")
