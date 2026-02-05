@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QListWidget, QComboBox, QToolBar, QPushButton, QMessageBox,
-    QListWidgetItem, QSplitter, QMenuBar, QMenu, QApplication, QDialog
+    QListWidgetItem, QSplitter, QMenuBar, QMenu, QApplication, QDialog,
+    QStackedWidget  # NEW: Add QStackedWidget for pages
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QAction
@@ -11,11 +12,12 @@ import sys
 import os
 
 from progain4.services.firebase_client import FirebaseClient
-from progain4.services. config import ConfigManager
+from progain4.services.config import ConfigManager
 
 # Widgets y Diálogos
 from progain4.ui.widgets.transactions_widget import TransactionsWidget
 from progain4.ui.widgets.sidebar_widget import SidebarWidget
+from progain4.ui.widgets.header_widget import HeaderWidget  # NEW: Add HeaderWidget
 from progain4.ui.dialogs.transaction_dialog import TransactionDialog
 from progain4.ui.dialogs.transfer_dialog import TransferDialog
 from progain4.ui.dialogs.firebase_inspector_dialog import FirebaseInspectorDialog
@@ -25,12 +27,12 @@ from progain4.ui.dialogs.project_dialog import ProjectDialog
 from progain4.ui.reports.gastos_categoria_report import GastosPorCategoriaWindowFirebase
 from progain4.ui.dialogs.gestion_cuentas_maestras_dialog import GestionCuentasMaestrasDialog
 from progain4.ui.dialogs.gestion_cuentas_proyecto_dialog import GestionCuentasProyectoDialog
-from progain4.ui.dialogs. gestion_categorias_maestras_dialog import GestionCategoriasMaestrasDialog
+from progain4.ui.dialogs.gestion_categorias_maestras_dialog import GestionCategoriasMaestrasDialog
 from progain4.ui.dialogs.gestion_categorias_proyecto_dialog import GestionCategoriasProyectoDialog
 from progain4.ui.dialogs.gestion_subcategorias_proyecto_dialog import GestionSubcategoriasProyectoDialog
 from progain4.ui.dialogs.gestion_presupuestos_dialog import GestionPresupuestosDialog
 from progain4.ui.dialogs.gestion_presupuestos_subcategorias_dialog import GestionPresupuestosSubcategoriasDialog
-from progain4.ui.dialogs. import_categories_dialog import ImportCategoriesDialog
+from progain4.ui.dialogs.import_categories_dialog import ImportCategoriesDialog
 
 # Dashboards
 from progain4.ui.dashboards.dashboard_gastos_avanzado_window_firebase import (
@@ -143,29 +145,56 @@ class MainWindow4(QMainWindow):
     # ------------------------------------------------------------------ UI INIT
 
     def _init_ui(self):
-        """Initialize the user interface"""
+        """Initialize the user interface - Construction Manager Pro Layout"""
         self._create_menu_bar()
         self._create_toolbar()
 
+        # Central widget with new layout structure
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
+        # Main horizontal layout: Sidebar | Content
         main_layout = QHBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
+        # Create and add sidebar (80px fixed width)
+        self.sidebar = self._create_modern_sidebar()
+        main_layout.addWidget(self.sidebar)
 
-        self.accounts_sidebar = self._create_accounts_sidebar()
-        splitter.addWidget(self.accounts_sidebar)
+        # Content area: Header + Pages
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
 
+        # Create and add header (64px fixed height)
+        self.header = self._create_header()
+        content_layout.addWidget(self.header)
+
+        # Create stacked widget for pages
+        self.pages_stack = QStackedWidget()
+        
+        # Page 0: Transactions view (main page)
         self.transactions_widget = TransactionsWidget()
         self.transactions_widget.transaction_double_clicked.connect(self._edit_transaction)
         self.transactions_widget.transaction_deleted.connect(self._on_delete_transaction)
-        splitter.addWidget(self.transactions_widget)
+        self.pages_stack.addWidget(self.transactions_widget)
+        
+        # Future: Add more pages here (dashboard, reports, etc.)
+        # Page 1: Dashboard page (placeholder for now)
+        # Page 2: Reports page (placeholder for now)
+        
+        content_layout.addWidget(self.pages_stack)
 
-        splitter.setSizes([200, 1000])
+        # Add content layout to main layout
+        content_container = QWidget()
+        content_container.setLayout(content_layout)
+        main_layout.addWidget(content_container)
 
-        main_layout.addWidget(splitter)
         central_widget.setLayout(main_layout)
+        
+        # Set initial page
+        self.pages_stack.setCurrentIndex(0)
 
         self.statusBar().showMessage("Listo")
 
@@ -403,20 +432,42 @@ class MainWindow4(QMainWindow):
         self.redo_button.setEnabled(False)
         toolbar.addAction(self.redo_button)
 
-    def _create_accounts_sidebar(self) -> QWidget:
-        """Create the modern sidebar with navigation and accounts"""
-        self.sidebar = SidebarWidget()
+    def _create_modern_sidebar(self) -> QWidget:
+        """Create the modern compact sidebar with navigation - Construction Manager Pro"""
+        sidebar = SidebarWidget()
         
-        # Set project name
-        self.sidebar.set_project_name(self.proyecto_nombre)
+        # Set project name (will be stored but not displayed in compact mode)
+        sidebar.set_project_name(self.proyecto_nombre)
         
         # Connect signals
-        self.sidebar.navigation_changed.connect(self._on_navigation_changed)
-        self.sidebar.account_selected.connect(self._on_account_selected)
-        self.sidebar.import_requested.connect(self._open_importar_transacciones)
-        self.sidebar.auditoria_requested.connect(self._open_auditoria_categorias)
+        sidebar.navigation_changed.connect(self._on_navigation_changed)
+        sidebar.account_selected.connect(self._on_account_selected)
+        sidebar.import_requested.connect(self._open_importar_transacciones)
+        sidebar.auditoria_requested.connect(self._open_auditoria_categorias)
         
-        return self.sidebar
+        return sidebar
+    
+    def _create_header(self) -> QWidget:
+        """Create the top header with company selector - Construction Manager Pro"""
+        header = HeaderWidget()
+        
+        # Connect signals
+        header.company_changed.connect(self._on_company_changed)
+        header.register_clicked.connect(self._add_transaction)
+        
+        return header
+    
+    def _on_company_changed(self, company_name: str):
+        """Handle company/project selection from header"""
+        logger.info(f"Company changed to: {company_name}")
+        # In a real implementation, this would filter data by company
+        # For now, just log it
+        self.statusBar().showMessage(f"Vista: {company_name}")
+
+    def _create_accounts_sidebar(self) -> QWidget:
+        """DEPRECATED: Use _create_modern_sidebar instead"""
+        # Keep for backward compatibility, delegates to new method
+        return self._create_modern_sidebar()
 
     # ------------------------------------------------------------------ DATA LOAD
 
@@ -1103,10 +1154,21 @@ class MainWindow4(QMainWindow):
 
     # ------------------------------------------------------------------ NAVIGATION
 
-    def _on_navigation_changed(self, item_key:  str):
-        """Handle navigation item selection."""
+    def _on_navigation_changed(self, item_key: str):
+        """Handle navigation item selection - updated for Construction Manager Pro"""
         logger.info(f"Navigation changed to: {item_key}")
         
+        # Update header title based on navigation
+        title_map = {
+            "dashboard": "Panel de Control",
+            "transactions": "Transacciones",
+            "cash_flow": "Flujo de Caja",
+            "budget": "Presupuestos"
+        }
+        if hasattr(self, 'header'):
+            self.header.set_title(title_map.get(item_key, "Control de Obra"))
+        
+        # Handle navigation
         if item_key == "dashboard":
             self._navigate_to_dashboard()
         elif item_key == "transactions":
@@ -1119,12 +1181,16 @@ class MainWindow4(QMainWindow):
     def _navigate_to_dashboard(self):
         """Navigate to Dashboard."""
         logger.info("Opening Dashboard")
+        # For now, open dashboard dialog (could be changed to a page later)
         self._open_dashboard_gastos_avanzado()
 
     def _navigate_to_transactions(self):
-        """Navigate to Transactions view."""
+        """Navigate to Transactions view - updated for stacked layout"""
         logger.info("Navigating to Transactions")
-        self. transactions_widget.setFocus()
+        # Switch to transactions page (index 0)
+        if hasattr(self, 'pages_stack'):
+            self.pages_stack.setCurrentIndex(0)
+        self.transactions_widget.setFocus()
         self._refresh_transactions()
         self.statusBar().showMessage("Vista de transacciones")
 

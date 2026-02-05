@@ -17,6 +17,55 @@ logger = logging.getLogger(__name__)
 _current_theme = "light"
 
 
+# ============================================================================
+# DESIGN COLORS - Construction Manager Pro Palette
+# ============================================================================
+DESIGN_COLORS = {
+    # Grises (Slate scale)
+    'slate_900': '#0f172a',   # Sidebar background principal
+    'slate_800': '#1e293b',   # Botón activo, hover states
+    'slate_700': '#334155',   # Bordes avatar, elementos secundarios
+    'slate_600': '#475569',
+    'slate_500': '#64748b',   # Texto secundario
+    'slate_400': '#94a3b8',   # Iconos inactivos, labels
+    'slate_300': '#cbd5e1',
+    'slate_200': '#e2e8f0',   # Bordes de cards, divisores
+    'slate_100': '#f1f5f9',   # Fondos secundarios, hover backgrounds
+    'slate_50': '#f8fafc',    # Fondo principal de la aplicación
+    
+    # Blancos
+    'white': '#ffffff',       # Tarjetas, cards, header
+    
+    # Azules (Primary)
+    'blue_600': '#2563eb',    # Acento principal, botones CTA
+    'blue_500': '#3b82f6',    # Borde izquierdo de nav activo, badges
+    'blue_100': '#dbeafe',    # Fondo badge "Licitación"
+    'blue_700': '#1d4ed8',    # Texto badge "Licitación"
+    
+    # Verdes (Success/Progress)
+    'emerald_600': '#059669',
+    'emerald_500': '#10b981', # Barras de progreso, montos positivos
+    'emerald_100': '#d1fae5', # Fondo badge "En Ejecución"
+    'emerald_700': '#047857', # Texto badge "En Ejecución"
+    
+    # Rojos (Error/Alert)
+    'rose_600': '#e11d48',
+    'rose_500': '#f43f5e',    # Montos negativos, alertas
+    'rose_100': '#ffe4e6',    # Fondo badge "Retrasado"
+    'rose_700': '#be123c',    # Texto badge "Retrasado"
+    
+    # Amarillos (Warning)
+    'amber_100': '#fef3c7',   # Fondo badge "Revisión"
+    'amber_700': '#b45309',   # Texto badge "Revisión"
+    
+    # Índigo (Multi-empresa)
+    'indigo_600': '#4f46e5',  # Empresa 1
+    'indigo_50': '#eef2ff',   # Fondo badge empresa 1
+    'indigo_100': '#e0e7ff',  # Borde badge empresa 1
+    'indigo_700': '#4338ca',  # Texto badge empresa 1
+}
+
+
 # Theme definitions
 THEMES: Dict[str, str] = {}
 
@@ -1289,6 +1338,509 @@ QToolBar {
 
 #sidebarFooter {
     background-color: #2e7d32;
+}
+"""
+
+
+# ============================================================================
+# CONSTRUCTION PRO THEME (Modern Construction Manager Design)
+# ============================================================================
+THEMES["construction_pro"] = """
+/* ========== GLOBAL ========== */
+QMainWindow {
+    background-color: #f8fafc;
+}
+
+QWidget {
+    font-family: "Segoe UI", "Arial", "Helvetica", sans-serif;
+    font-size: 10pt;
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+/* ========== DIALOGS ========== */
+QDialog {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+/* ========== GROUP BOXES ========== */
+QGroupBox {
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-top: 12px;
+    padding-top: 16px;
+    background-color: #ffffff;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 8px;
+    color: #2563eb;
+    font-size: 11pt;
+    font-weight: 700;
+}
+
+/* ========== LIST WIDGETS ========== */
+QListWidget {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    outline: none;
+    color: #475569;
+}
+
+QListWidget::item {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
+}
+
+QListWidget::item:selected {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+QListWidget::item:hover:!selected {
+    background-color: #f8fafc;
+    color: #2563eb;
+}
+
+/* ========== BUTTONS ========== */
+QPushButton {
+    background-color: #0f172a;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+QPushButton:hover {
+    background-color: #1e293b;
+}
+
+QPushButton:pressed {
+    background-color: #334155;
+}
+
+QPushButton:disabled {
+    background-color: #cbd5e1;
+    color: #94a3b8;
+}
+
+/* ========== LABELS ========== */
+QLabel {
+    color: #0f172a;
+}
+
+/* ========== LINE EDITS ========== */
+QLineEdit {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+QLineEdit:focus {
+    border: 2px solid #2563eb;
+}
+
+QLineEdit:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+}
+
+/* ========== COMBO BOXES ========== */
+QComboBox {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #334155;
+    font-size: 13px;
+}
+
+QComboBox:hover {
+    border: 1px solid #cbd5e1;
+}
+
+QComboBox:focus {
+    border: 2px solid #2563eb;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #334155;
+    selection-background-color: #f1f5f9;
+    selection-color: #0f172a;
+    padding: 4px;
+}
+
+/* ========== TABLE WIDGETS ========== */
+QTableWidget {
+    background-color: #ffffff;
+    gridline-color: #f1f5f9;
+    color: #475569;
+    border: none;
+}
+
+QTableWidget::item {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+QTableWidget::item:selected {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+QTableWidget::item:hover {
+    background-color: rgba(248, 250, 252, 0.8);
+}
+
+QHeaderView::section {
+    background-color: #f8fafc;
+    color: #64748b;
+    padding: 12px 8px;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+/* ========== SCROLL BARS ========== */
+QScrollBar:vertical {
+    border: none;
+    background-color: #f8fafc;
+    width: 8px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #94a3b8;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    background-color: #f8fafc;
+    height: 8px;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #94a3b8;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* ========== SPLITTER ========== */
+QSplitter::handle {
+    background-color: #e2e8f0;
+}
+
+QSplitter::handle:hover {
+    background-color: #cbd5e1;
+}
+
+/* ========== TAB WIDGET ========== */
+QTabWidget::pane {
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    border-radius: 12px;
+}
+
+QTabBar::tab {
+    background-color: #f8fafc;
+    color: #64748b;
+    padding: 10px 20px;
+    border: 1px solid #e2e8f0;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-weight: 500;
+}
+
+QTabBar::tab:selected {
+    background-color: #ffffff;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #f1f5f9;
+}
+
+/* ========== MENU BAR ========== */
+QMenuBar {
+    background-color: #ffffff;
+    color: #0f172a;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+QMenuBar::item {
+    padding: 8px 16px;
+    background-color: transparent;
+}
+
+QMenuBar::item:selected {
+    background-color: #f1f5f9;
+    color: #2563eb;
+}
+
+QMenu {
+    background-color: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+QMenu::item {
+    padding: 8px 24px;
+}
+
+QMenu::item:selected {
+    background-color: #f1f5f9;
+    color: #2563eb;
+}
+
+/* ========== CHECKBOXES ========== */
+QCheckBox {
+    color: #0f172a;
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #2563eb;
+}
+
+/* ========== RADIO BUTTONS ========== */
+QRadioButton {
+    color: #0f172a;
+    spacing: 8px;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 9px;
+    background-color: #ffffff;
+}
+
+QRadioButton::indicator:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+QRadioButton::indicator:hover {
+    border-color: #2563eb;
+}
+
+/* ========== DATE EDIT ========== */
+QDateEdit {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QDateEdit:focus {
+    border: 2px solid #2563eb;
+}
+
+QDateEdit::drop-down {
+    border: none;
+    width: 20px;
+}
+
+/* ========== SPIN BOX ========== */
+QSpinBox,
+QDoubleSpinBox {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QSpinBox:focus,
+QDoubleSpinBox:focus {
+    border: 2px solid #2563eb;
+}
+
+/* ========== TEXT EDIT ========== */
+QTextEdit,
+QPlainTextEdit {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+QTextEdit:focus,
+QPlainTextEdit:focus {
+    border: 2px solid #2563eb;
+}
+
+/* ========== PROGRESS BAR ========== */
+QProgressBar {
+    border: none;
+    border-radius: 4px;
+    background-color: #f1f5f9;
+    text-align: center;
+    color: #475569;
+    height: 8px;
+}
+
+QProgressBar::chunk {
+    background-color: #10b981;
+    border-radius: 4px;
+}
+
+/* ========== TOOL TIP ========== */
+QToolTip {
+    background-color: #0f172a;
+    color: #ffffff;
+    border: 1px solid #1e293b;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+/* ========== TOOLBAR ========== */
+QToolBar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    spacing: 8px;
+    padding: 8px;
+}
+
+/* ========== SIDEBAR (Construction Pro specific) ========== */
+#sidebar {
+    background-color: #0f172a;
+    color: #94a3b8;
+    border-right: 1px solid #1e293b;
+    min-width: 80px;
+    max-width: 80px;
+}
+
+#sidebarHeader {
+    background-color: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#sidebarFooter {
+    background-color: #0f172a;
+    color: #94a3b8;
+}
+
+#sidebar QLabel.sectionTitle {
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 9px;
+}
+
+/* Botones de navegación del sidebar (Dashboard, Transacciones, etc.) */
+QPushButton#sidebarNavButton {
+    background-color: transparent;
+    color: #94a3b8;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+}
+
+QPushButton#sidebarNavButton:hover {
+    background-color: rgba(30, 41, 59, 0.5);
+}
+
+QPushButton#sidebarNavButton:checked {
+    background-color: #1e293b;
+    color: #ffffff;
+    border-left: 4px solid #3b82f6;
+}
+
+/* Botones de cuentas del sidebar */
+QPushButton#sidebarAccountButton {
+    background-color: transparent;
+    color: #94a3b8;
+    border-radius: 8px;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+QPushButton#sidebarAccountButton:hover {
+    background-color: rgba(30, 41, 59, 0.3);
+}
+
+QPushButton#sidebarAccountButton:checked {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+/* Botones de acciones rápidas del sidebar */
+QPushButton#sidebarQuickButton {
+    background-color: transparent;
+    color: #94a3b8;
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+QPushButton#sidebarQuickButton:hover {
+    background-color: rgba(30, 41, 59, 0.3);
 }
 """
 

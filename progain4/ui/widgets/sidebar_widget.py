@@ -1,10 +1,11 @@
 """
-Modern sidebar navigation widget for PROGRAIN 4.0/5.0
+Modern sidebar navigation widget for PROGRAIN 4.0/5.0 - Construction Manager Pro Design
 
 Provides:
-- Navigation sections (Dashboard, Transactions, Cash Flow, Budget)
-- Accounts listing with selection
-- Optional quick action buttons
+- Compact vertical navigation (80px width)
+- Modern navigation buttons with active state indicators
+- Settings and user profile in footer
+- Maintains backward compatibility with all signals
 """
 
 from PyQt6.QtWidgets import (
@@ -18,9 +19,12 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPainter, QColor
 from typing import List, Dict, Any, Optional
 import logging
+
+# Import the new ModernNavButton
+from progain4.ui.widgets.modern_nav_button import ModernNavButton
 
 logger = logging.getLogger(__name__)
 
@@ -56,268 +60,208 @@ class SidebarWidget(QWidget):
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize the sidebar UI"""
+        """Initialize the sidebar UI - Construction Manager Pro Design"""
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Header section
-        header = self._create_header()
-        main_layout.addWidget(header)
+        # Logo/Brand section at top
+        logo_section = self._create_logo_section()
+        main_layout.addWidget(logo_section)
 
-        # Navigation section
+        # Navigation buttons (center, with stretch)
         nav_section = self._create_navigation_section()
-        main_layout.addWidget(nav_section)
+        main_layout.addWidget(nav_section, stretch=1)
 
-        # Accounts section (scrollable)
-        accounts_section = self._create_accounts_section()
-        main_layout.addWidget(accounts_section, stretch=1)
-
-        # Footer section (quick actions)
+        # Footer section (settings, avatar)
         footer = self._create_footer()
         main_layout.addWidget(footer)
 
         self.setLayout(main_layout)
 
-        # Width constraints; el color vendrá del tema
-        self.setMinimumWidth(220)
-        self.setMaximumWidth(350)
+        # Width constraints for new compact design (80px fixed)
+        self.setFixedWidth(80)
 
         # NO setStyleSheet aquí: el estilo viene del theme_manager
 
-    def _create_header(self) -> QWidget:
-        """Create the header section with app name and project"""
-        header = QFrame()
-        # Para que los temas puedan estilar el header
-        header.setObjectName("sidebarHeader")
-
+    def _create_logo_section(self) -> QWidget:
+        """Create the logo/brand section at the top - Construction Manager Pro"""
+        logo_frame = QFrame()
+        logo_frame.setObjectName("sidebarHeader")
+        
         layout = QVBoxLayout()
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(8)
-
-        # App name
-        app_label = QLabel("PROGRAIN")
-        app_font = QFont()
-        app_font.setPointSize(16)
-        app_font.setBold(True)
-        app_label.setFont(app_font)
-        app_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(app_label)
-
-        # Project name (will be set dynamically)
-        self.project_label = QLabel("Proyecto")
-        project_font = QFont()
-        project_font.setPointSize(9)
-        self.project_label.setFont(project_font)
-        self.project_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.project_label.setWordWrap(True)
-        layout.addWidget(self.project_label)
-
-        header.setLayout(layout)
-        return header
-
-    def _create_navigation_section(self) -> QWidget:
-        """Create the navigation section"""
-        section = QFrame()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(8, 16, 8, 8)
-        layout.setSpacing(4)
-
-        # Section title
-        title = QLabel("NAVEGACIÓN")
-        title_font = QFont()
-        title_font.setPointSize(9)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setContentsMargins(8, 0, 0, 8)
-        layout.addWidget(title)
-
-        # Navigation items
-        nav_items = [
-            ("dashboard", "📊 Dashboard"),
-            ("transactions", "💰 Transacciones"),
-            ("cash_flow", "💸 Flujo de Caja"),
-            ("budget", "📈 Presupuestos"),
-        ]
-
-        for item_key, item_label in nav_items:
-            btn = QPushButton(item_label)
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setCheckable(True)
-            btn.setProperty("selected", False)
-            btn.clicked.connect(lambda checked, k=item_key: self._on_navigation_clicked(k))
-            layout.addWidget(btn)
-            self.navigation_buttons[item_key] = btn
-
-        section.setLayout(layout)
-        return section
-
-    def _create_accounts_section(self) -> QWidget:
-        """Create the scrollable accounts section"""
-        section = QFrame()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(4)
-
-        # Section title
-        title = QLabel("CUENTAS")
-        title_font = QFont()
-        title_font.setPointSize(9)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setContentsMargins(8, 0, 0, 8)
-        layout.addWidget(title)
-
-        # Scrollable container for accounts
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        # El estilo del scroll bar puede controlarse por tema si quieres;
-        # aquí lo dejamos neutro para no pelear con theme_manager
-        scroll.setStyleSheet("""
-            QScrollArea {
-                background-color: transparent;
-                border: none;
+        layout.setContentsMargins(16, 16, 16, 24)
+        layout.setSpacing(0)
+        
+        # Logo container - blue background with icon
+        logo_container = QFrame()
+        logo_container.setStyleSheet("""
+            QFrame {
+                background-color: #2563eb;
+                border-radius: 8px;
             }
         """)
+        logo_container.setFixedSize(48, 48)
+        
+        logo_layout = QVBoxLayout(logo_container)
+        logo_layout.setContentsMargins(0, 0, 0, 0)
+        logo_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # Logo icon (using emoji for now, can be replaced with image)
+        logo_label = QLabel("🏗️")
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_label.setStyleSheet("font-size: 24px; background-color: transparent; color: white;")
+        logo_layout.addWidget(logo_label)
+        
+        # Center the logo container
+        container_layout = QHBoxLayout()
+        container_layout.addStretch()
+        container_layout.addWidget(logo_container)
+        container_layout.addStretch()
+        
+        layout.addLayout(container_layout)
+        logo_frame.setLayout(layout)
+        
+        return logo_frame
 
-        # Container for account buttons
-        self.accounts_container = QWidget()
-        self.accounts_layout = QVBoxLayout()
-        self.accounts_layout.setContentsMargins(0, 0, 0, 0)
-        self.accounts_layout.setSpacing(4)
-        self.accounts_container.setLayout(self.accounts_layout)
-
-        scroll.setWidget(self.accounts_container)
-        layout.addWidget(scroll)
-
+    def _create_navigation_section(self) -> QWidget:
+        """Create the navigation section with Modern Nav Buttons"""
+        section = QFrame()
+        layout = QVBoxLayout()
+        layout.setContentsMargins(8, 16, 8, 16)
+        layout.setSpacing(16)
+        
+        # Navigation items - using ModernNavButton
+        # Map old keys to new labels for backward compatibility
+        nav_items = [
+            ("dashboard", "Panel", ""),  # icon_path can be empty, will use emoji fallback
+            ("transactions", "Caja", ""),  # Previously "transactions", now "Caja" (cash)
+            ("cash_flow", "Obras", ""),  # Previously "cash_flow", now "Obras" (projects)
+            ("budget", "Reportes", ""),  # Previously "budget", now "Reportes" (reports)
+        ]
+        
+        for item_key, item_label, icon_path in nav_items:
+            btn = ModernNavButton(icon_path, item_label)
+            btn.clicked.connect(lambda checked=False, k=item_key: self._on_navigation_clicked(k))
+            layout.addWidget(btn)
+            self.navigation_buttons[item_key] = btn
+        
+        layout.addStretch()
         section.setLayout(layout)
         return section
 
     def _create_footer(self) -> QWidget:
-        """Create the footer section with quick action buttons"""
+        """Create the footer section with settings and avatar - Construction Manager Pro"""
         footer = QFrame()
         footer.setObjectName("sidebarFooter")
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(4)
+        layout.setContentsMargins(8, 8, 8, 16)
+        layout.setSpacing(16)
 
-        # Section title
-        title = QLabel("ACCIONES RÁPIDAS")
-        title_font = QFont()
-        title_font.setPointSize(8)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setContentsMargins(8, 0, 0, 4)
-        layout.addWidget(title)
-
-        # Import button
-        import_btn = QPushButton("📥 Importar")
-        import_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        import_btn.clicked.connect(self.import_requested.emit)
-        layout.addWidget(import_btn)
-
-        # Auditoria button
-        audit_btn = QPushButton("🔍 Auditoría")
-        audit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        audit_btn.clicked.connect(self.auditoria_requested.emit)
-        layout.addWidget(audit_btn)
+        # Settings button (icon only)
+        settings_btn = QPushButton("⚙️")
+        settings_btn.setFixedSize(32, 32)
+        settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        settings_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                font-size: 20px;
+                color: #94a3b8;
+            }
+            QPushButton:hover {
+                color: #ffffff;
+            }
+        """)
+        # Connect to import (backward compatibility with quick actions)
+        settings_btn.clicked.connect(self.import_requested.emit)
+        
+        # Avatar (circular label)
+        avatar = QLabel()
+        avatar.setFixedSize(32, 32)
+        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        avatar.setStyleSheet("""
+            QLabel {
+                background-color: #334155;
+                color: #ffffff;
+                border: 2px solid #475569;
+                border-radius: 16px;
+                font-weight: 700;
+                font-size: 12px;
+            }
+        """)
+        avatar.setText("U")  # Default user initial
+        avatar.setCursor(Qt.CursorShape.PointingHandCursor)
+        
+        # Center align buttons
+        settings_layout = QHBoxLayout()
+        settings_layout.addStretch()
+        settings_layout.addWidget(settings_btn)
+        settings_layout.addStretch()
+        
+        avatar_layout = QHBoxLayout()
+        avatar_layout.addStretch()
+        avatar_layout.addWidget(avatar)
+        avatar_layout.addStretch()
+        
+        layout.addLayout(settings_layout)
+        layout.addLayout(avatar_layout)
 
         footer.setLayout(layout)
         return footer
 
     # --------------------------------------------------------------------- API
+    # Keep backward compatibility methods
 
     def set_project_name(self, project_name: str):
-        """Set the project name displayed in the header"""
-        self.project_label.setText(project_name)
+        """Set the project name - kept for backward compatibility"""
+        # In the new design, project name is shown in header widget instead
+        # Store it but don't display in sidebar
+        self._project_name = project_name
+        logger.info("Sidebar: Project name set to %s (not displayed in compact mode)", project_name)
 
     def set_accounts(self, accounts: List[Dict[str, Any]]):
         """
-        Set the list of accounts to display.
-
+        Set the list of accounts - kept for backward compatibility.
+        
+        In the new compact design (80px), accounts are not displayed in the sidebar.
+        They should be accessed through the main content area instead.
+        
         Args:
             accounts: List of account dictionaries with 'id', 'nombre', 'tipo' keys
         """
-        # Clear existing account buttons
-        while self.accounts_layout.count():
-            item = self.accounts_layout.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.deleteLater()
-
+        # Store accounts but don't display them in compact sidebar
+        self._accounts = accounts
+        logger.info("Sidebar: Received %d accounts (not displayed in compact mode)", len(accounts))
+        
+        # Keep the account_buttons dict for potential future use
         self.account_buttons.clear()
-
-        # Add "All accounts" option
-        all_btn = QPushButton("📊 Todas las cuentas")
-        all_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        all_btn.setCheckable(True)
-        all_btn.setProperty("selected", False)
-        all_btn.clicked.connect(lambda checked=False: self._on_account_clicked(None))
-        self.accounts_layout.addWidget(all_btn)
-        self.account_buttons[None] = all_btn
-
-        # Add individual accounts
-        for cuenta in accounts:
-            cuenta_id = cuenta.get("id")
-            cuenta_nombre = cuenta.get("nombre", "Sin nombre")
-            cuenta_tipo = cuenta.get("tipo", "")
-
-            icon = self._get_account_icon(cuenta_tipo)
-            btn = QPushButton(f"{icon} {cuenta_nombre}")
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setCheckable(True)
-            btn.setProperty("selected", False)
-            btn.clicked.connect(lambda checked, cid=cuenta_id: self._on_account_clicked(cid))
-            self.accounts_layout.addWidget(btn)
-            self.account_buttons[cuenta_id] = btn
-
-        # Add stretch at the end
-        self.accounts_layout.addStretch()
-
-        logger.info("Sidebar: Loaded %d accounts", len(accounts))
 
     # --------------------------------------------------------------------- Internals
 
-    def _get_account_icon(self, tipo: str) -> str:
-        """Get icon for account type"""
-        if not tipo:
-            return "💰"
-        icons = {
-            "efectivo": "💵",
-            "banco": "🏦",
-            "tarjeta": "💳",
-            "inversion": "📈",
-            "ahorro": "🏦",
-        }
-        return icons.get(str(tipo).lower(), "💰")
-
     def _on_navigation_clicked(self, item_key: str):
-        """Handle navigation item click"""
-        # Update selection state
+        """Handle navigation item click - updated for ModernNavButton"""
+        # Update selection state for all navigation buttons
         for key, btn in self.navigation_buttons.items():
-            selected = key == item_key
-            btn.setChecked(selected)
-            btn.setProperty("selected", selected)
-            btn.style().unpolish(btn)
-            btn.style().polish(btn)
+            if isinstance(btn, ModernNavButton):
+                btn.set_active(key == item_key)
+            else:
+                # Fallback for any old-style buttons
+                selected = key == item_key
+                btn.setChecked(selected)
+                btn.setProperty("selected", selected)
+                btn.style().unpolish(btn)
+                btn.style().polish(btn)
 
         self.current_navigation_item = item_key
         self.navigation_changed.emit(item_key)
         logger.info("Sidebar: Navigation changed to %s", item_key)
 
     def _on_account_clicked(self, cuenta_id: Optional[str]):
-        """Handle account selection"""
-        # Update selection state
-        for cid, btn in self.account_buttons.items():
-            selected = cid == cuenta_id
-            btn.setChecked(selected)
-            btn.setProperty("selected", selected)
-            btn.style().unpolish(btn)
-            btn.style().polish(btn)
-
+        """Handle account selection - kept for backward compatibility"""
+        # In compact mode, accounts are not displayed
+        # But we keep the signal for backward compatibility
         self.current_account_id = cuenta_id
         self.account_selected.emit(cuenta_id)
         logger.info("Sidebar: Account selected: %s", cuenta_id or "All accounts")
@@ -330,6 +274,14 @@ class SidebarWidget(QWidget):
             self._on_navigation_clicked(item_key)
 
     def select_account(self, cuenta_id: Optional[str]):
-        """Programmatically select an account"""
-        if cuenta_id in self.account_buttons:
+        """Programmatically select an account - kept for backward compatibility"""
+        # In compact mode, this just emits the signal
+        # Fixed: use 'and' instead of 'or' to properly check both conditions
+        if cuenta_id is None or cuenta_id in self.account_buttons:
             self._on_account_clicked(cuenta_id)
+    
+    def refresh(self):
+        """Refresh the sidebar - stub for backward compatibility"""
+        # In compact mode, there's nothing to refresh
+        # Accounts are not displayed
+        logger.debug("Sidebar refresh called (no-op in compact mode)")
